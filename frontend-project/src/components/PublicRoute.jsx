@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const ProtectedRoute = ({ children }) => {
+const PublicRoute = ({ children }) => {
     const { user, loading } = useAuth();
 
     if (loading) {
@@ -13,11 +13,11 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    if (!user) {
-        return <Navigate to="/login" />;
+    if (user) {
+        return <Navigate to="/" />;
     }
 
     return children;
 };
 
-export default ProtectedRoute;
+export default PublicRoute;

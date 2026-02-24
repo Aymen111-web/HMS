@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { getPatients, createPatient } = require('../controllers/patientController');
 
-// Placeholder for patient routes
-router.get('/', (req, res) => res.send('Get All Patients'));
+// @route   GET /api/patients
+router.get('/', getPatients);
+
+// @route   POST /api/patients
+router.post('/', createPatient);
 
 module.exports = router;

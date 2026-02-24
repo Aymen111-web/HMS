@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { register, login } = require('../controllers/authController');
 
-// Placeholder for auth routes
-router.post('/register', (req, res) => res.send('Register Route'));
-router.post('/login', (req, res) => res.send('Login Route'));
+// @route   POST /api/auth/register
+router.post('/register', register);
+
+// @route   POST /api/auth/login
+router.post('/login', login);
 
 module.exports = router;

@@ -1,9 +1,38 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Hospital, Mail, Lock, ArrowRight, Github } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Hospital, Mail, Lock, ArrowRight, Github, AlertCircle } from 'lucide-react';
 import { Button, Input } from '../components/UI';
+import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
 
 const Login = () => {
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await api.post('/auth/login', { email, password });
+            if (response.data.success) {
+                login(response.data.user);
+                // Save token to localStorage
+                localStorage.setItem('token', response.data.token);
+                navigate('/');
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="max-w-md w-full animate-in fade-in zoom-in-95 duration-500">
@@ -16,13 +45,24 @@ const Login = () => {
                 </div>
 
                 <div className="bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/60 border border-slate-100">
-                    <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                            <AlertCircle size={18} />
+                            {error}
+                        </div>
+                    )}
+
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                         <div className="relative">
                             <Mail size={18} className="absolute left-3.5 top-[38px] text-slate-400 z-10" />
                             <Input
                                 label="Email Address"
                                 placeholder="doctor@hospital.com"
                                 className="pl-11"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -33,6 +73,10 @@ const Login = () => {
                                 type="password"
                                 placeholder="••••••••"
                                 className="pl-11"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -44,8 +88,8 @@ const Login = () => {
                             <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">Forgot password?</a>
                         </div>
 
-                        <Button variant="primary" className="w-full h-12 text-base">
-                            Sign In
+                        <Button variant="primary" type="submit" className="w-full h-12 text-base" disabled={isLoading}>
+                            {isLoading ? 'Signing In...' : 'Sign In'}
                             <ArrowRight size={18} className="ml-2" />
                         </Button>
                     </form>
@@ -60,11 +104,11 @@ const Login = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Button variant="secondary" className="h-12">
+                        <Button variant="secondary" className="h-12" disabled={isLoading}>
                             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 mr-2" />
                             Google
                         </Button>
-                        <Button variant="secondary" className="h-12 text-slate-700">
+                        <Button variant="secondary" className="h-12 text-slate-700" disabled={isLoading}>
                             <Github size={18} className="mr-2" />
                             Github
                         </Button>

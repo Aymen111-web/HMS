@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard,
     Users,
@@ -10,15 +10,24 @@ import {
     LogOut,
     X
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Sidebar = ({ isOpen, onClose }) => {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-        { name: 'Patients', icon: Users, path: '/patients' },
+        { name: 'Patients', icon: Patients, path: '/patients' }, // Fix: Patients component path
         { name: 'Doctors', icon: UserRound, path: '/doctors' },
         { name: 'Appointments', icon: CalendarCheck, path: '/appointments' },
         { name: 'Medical Records', icon: FileText, path: '/records' },
     ];
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const sidebarClasses = `
     fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 
@@ -75,7 +84,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                             <Settings size={20} />
                             <span className="font-medium">Settings</span>
                         </NavLink>
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors mt-1 group">
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors mt-1 group"
+                        >
                             <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
                             <span className="font-medium">Logout</span>
                         </button>
