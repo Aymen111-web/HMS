@@ -9,3 +9,8 @@ export const getPatientPrescriptions = (patientId) => api.get(`/prescriptions/pa
 export const getPatientAppointments = (patientId) => api.get(`/appointments/patient/${patientId}`);
 export const createAppointment = (data) => api.post('/appointments', data);
 export const cancelAppointment = (id) => api.patch(`/appointments/${id}`, { status: 'Cancelled' });
+
+// Admin/Staff Actions
+export const getPatients = () => api.get('/patients');
+export const createPatient = (data) => api.post('/patients', data);
+export const deletePatient = (id) => api.delete(`/patients/${id}`);

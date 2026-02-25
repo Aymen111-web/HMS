@@ -12,6 +12,7 @@ import {
     MoreHorizontal,
     Trash2
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import prescriptionService from '../../services/prescriptionService';
 import { getDoctorAppointments } from '../../services/appointmentService';
@@ -19,6 +20,7 @@ import { Button, Input } from '../../components/UI';
 
 const DoctorPrescriptions = () => {
     const { user } = useAuth();
+    const location = useLocation();
     const [prescriptions, setPrescriptions] = useState([]);
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -32,6 +34,17 @@ const DoctorPrescriptions = () => {
         medicines: [{ name: '', dosage: '', duration: '', instructions: '' }],
         notes: ''
     });
+
+    useEffect(() => {
+        if (location.state?.aptId) {
+            setShowModal(true);
+            setNewPrescription(prev => ({
+                ...prev,
+                appointment: location.state.aptId,
+                patient: location.state.patientId
+            }));
+        }
+    }, [location]);
 
     useEffect(() => {
         fetchData();
@@ -202,6 +215,7 @@ const DoctorPrescriptions = () => {
                                     <select
                                         className="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-100"
                                         required
+                                        value={newPrescription.appointment}
                                         onChange={(e) => {
                                             const appt = appointments.find(a => a._id === e.target.value);
                                             setNewPrescription({

@@ -12,7 +12,7 @@ import {
     Receipt,
     History
 } from 'lucide-react';
-import { Card, Badge, Button, Input } from '../../components/UI';
+import { Card, Badge, Button, Input, Modal } from '../../components/UI';
 import { useAuth } from '../../hooks/useAuth';
 import { getPatientPayments } from '../../services/patientService';
 
@@ -20,7 +20,10 @@ const PatientPayments = () => {
     const { user } = useAuth();
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState(null);
 
     useEffect(() => {
         if (user?.patientId) {
@@ -39,6 +42,35 @@ const PatientPayments = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePayment = (payment) => {
+        setSelectedPayment(payment);
+        setIsPaymentModalOpen(true);
+    };
+
+    const processPayment = async () => {
+        setSubmitting(true);
+        try {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Update UI
+            if (selectedPayment) {
+                setPayments(prev => prev.map(p => p._id === selectedPayment._id ? { ...p, status: 'Paid' } : p));
+            } else {
+                setPayments(prev => prev.map(p => ({ ...p, status: 'Paid' })));
+            }
+            alert('Payment processed successfully!');
+            setIsPaymentModalOpen(false);
+        } catch (err) {
+            alert('Payment failed. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDownload = (payment) => {
+        alert(`Downloading Invoice #INV-${payment._id.substring(0, 8)}.pdf...`);
     };
 
     const totalPaid = payments.filter(p => p.status === 'Paid').reduce((sum, p) => sum + p.amount, 0);
@@ -69,7 +101,13 @@ const PatientPayments = () => {
                     <div className="relative z-10">
                         <p className="text-blue-100 text-sm font-bold uppercase tracking-wider mb-2">Total Amount Pending</p>
                         <h2 className="text-4xl font-black tracking-tighter">${totalPending.toFixed(2)}</h2>
-                        <Button className="mt-6 bg-white text-blue-600 hover:bg-blue-50 border-none font-bold rounded-xl shadow-lg shadow-blue-900/40">
+                        <Button
+                            className="mt-6 bg-white text-blue-600 hover:bg-blue-50 border-none font-bold rounded-xl shadow-lg shadow-blue-900/40"
+                            onClick={() => {
+                                setSelectedPayment(null);
+                                setIsPaymentModalOpen(true);
+                            }}
+                        >
                             Pay All Now <ArrowRight size={16} className="ml-2" />
                         </Button>
                     </div>
@@ -169,11 +207,20 @@ const PatientPayments = () => {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-white hover:shadow-md">
+                                                <Button
+                                                    variant="ghost"
+                                                    className="h-10 w-10 p-0 rounded-xl hover:bg-white hover:shadow-md"
+                                                    onClick={() => handleDownload(payment)}
+                                                >
                                                     <Download size={18} className="text-slate-400 group-hover:text-blue-600" />
                                                 </Button>
                                                 {payment.status === 'Pending' && (
-                                                    <Button variant="primary" size="sm" className="rounded-xl h-10 px-6 font-bold">
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
+                                                        className="rounded-xl h-10 px-6 font-bold"
+                                                        onClick={() => handlePayment(payment)}
+                                                    >
                                                         Pay Now
                                                     </Button>
                                                 )}
@@ -222,6 +269,70 @@ const PatientPayments = () => {
                     </Button>
                 </div>
             </div>
+            {/* Payment Processing Modal */}
+            <Modal isOpen={isPaymentModalOpen} onClose={() => !submitting && setIsPaymentModalOpen(false)} title="Secure Checkout">
+                <div className="space-y-6">
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col items-center text-center">
+                        <div className="h-16 w-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-blue-100">
+                            <CreditCard size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                            ${selectedPayment ? selectedPayment.amount.toFixed(2) : totalPending.toFixed(2)}
+                        </h3>
+                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mt-1">
+                            {selectedPayment ? `Invoice #INV-${selectedPayment._id.substring(0, 8)}` : 'Total Pending Balance'}
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-blue-300 transition-all">
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-[10px]">VISA</div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800">Standard Charter •••• 1234</p>
+                                    <p className="text-xs text-slate-500">Expires 12/26</p>
+                                </div>
+                            </div>
+                            <div className="h-6 w-6 rounded-full border-2 border-blue-600 flex items-center justify-center">
+                                <div className="h-3 w-3 bg-blue-600 rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between opacity-60">
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-[10px]">MC</div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800">MasterCard •••• 5678</p>
+                                    <p className="text-xs text-slate-500">Expires 08/25</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                        <Button
+                            variant="secondary"
+                            className="flex-1 h-14 rounded-2xl font-bold"
+                            onClick={() => setIsPaymentModalOpen(false)}
+                            disabled={submitting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-blue-100"
+                            onClick={processPayment}
+                            disabled={submitting}
+                        >
+                            {submitting ? <Loader2 className="animate-spin" /> : `Pay $${selectedPayment ? selectedPayment.amount.toFixed(2) : totalPending.toFixed(2)}`}
+                        </Button>
+                    </div>
+
+                    <p className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">
+                        🔒 Encrypted 256-bit Secure SSL Transaction
+                    </p>
+                </div>
+            </Modal>
         </div>
     );
 };

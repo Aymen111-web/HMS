@@ -15,6 +15,10 @@ import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
 import Appointments from './pages/Appointments';
+import Departments from './pages/Departments';
+import Billing from './pages/Billing';
+import Reports from './pages/Reports';
+import Support from './pages/Support';
 import NotFound from './pages/NotFound';
 
 // Doctor Pages
@@ -33,6 +37,7 @@ import MedicalRecords from './pages/patient/MedicalRecords';
 import LabReports from './pages/patient/LabReports';
 import PatientPayments from './pages/patient/PatientPayments';
 import PatientProfile from './pages/patient/PatientProfile';
+import PatientDoctors from './pages/patient/PatientDoctors';
 
 function App() {
     return (
@@ -80,6 +85,10 @@ function App() {
                         <Route path="doctors" element={<Doctors />} />
                         <Route path="patients" element={<Patients />} />
                         <Route path="appointments" element={<Appointments />} />
+                        <Route path="departments" element={<Departments />} />
+                        <Route path="billing" element={<Billing />} />
+                        <Route path="reports" element={<Reports />} />
+                        <Route path="support" element={<Support />} />
                     </Route>
 
                     {/* Doctor Routes */}
@@ -96,6 +105,8 @@ function App() {
                         <Route path="appointments" element={<DoctorAppointments />} />
                         <Route path="prescriptions" element={<DoctorPrescriptions />} />
                         <Route path="urgent-cases" element={<UrgentCases />} />
+                        <Route path="support" element={<Support />} />
+                        <Route path="reports" element={<div>Doctor Reports Coming Soon</div>} />
                     </Route>
 
                     {/* Patient Routes */}
@@ -115,6 +126,8 @@ function App() {
                         <Route path="lab-reports" element={<LabReports />} />
                         <Route path="payments" element={<PatientPayments />} />
                         <Route path="profile" element={<PatientProfile />} />
+                        <Route path="doctors" element={<PatientDoctors />} />
+                        <Route path="support" element={<Support />} />
                     </Route>
 
                     {/* 404 Route */}

@@ -9,7 +9,12 @@ import {
     Settings,
     LogOut,
     AlertCircle,
-    X
+    X,
+    Building2,
+    CreditCard,
+    Stethoscope,
+    Activity,
+    ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -34,13 +39,16 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Dashboard', icon: LayoutDashboard, path: `${basePath}/dashboard`, roles: ['Admin', 'Doctor', 'Patient'] },
         { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
         { name: 'Patients', icon: Users, path: `${basePath}/patients`, roles: ['Admin', 'Doctor'] },
-        { name: 'Doctors', icon: UserRound, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
-        { name: 'Prescriptions', icon: FileText, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient'] },
-        { name: 'Medical Records', icon: FileText, path: `${basePath}/records`, roles: ['Patient'] },
-        { name: 'Lab Reports', icon: FileText, path: `${basePath}/lab-reports`, roles: ['Patient'] },
-        { name: 'Payments', icon: FileText, path: `${basePath}/payments`, roles: ['Patient'] },
+        { name: 'Doctors', icon: Stethoscope, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
+        { name: 'Departments', icon: Building2, path: `${basePath}/departments`, roles: ['Admin'] },
+        { name: 'Billing', icon: CreditCard, path: `${basePath}/billing`, roles: ['Admin'] },
+        { name: 'Prescriptions', icon: ClipboardList, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient'] },
+        { name: 'Records', icon: FileText, path: `${basePath}/records`, roles: ['Patient'] },
+        { name: 'Lab Reports', icon: Activity, path: `${basePath}/lab-reports`, roles: ['Patient'] },
+        { name: 'My Payments', icon: CreditCard, path: `${basePath}/payments`, roles: ['Patient'] },
         { name: 'Urgent Cases', icon: AlertCircle, path: `${basePath}/urgent-cases`, roles: ['Doctor'] },
         { name: 'Reports', icon: FileText, path: `${basePath}/reports`, roles: ['Admin', 'Doctor'] },
+        { name: 'Support Center', icon: AlertCircle, path: `${basePath}/support`, roles: ['Admin', 'Doctor', 'Patient'] },
     ];
 
     const normalizedUserRole = user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1).toLowerCase();

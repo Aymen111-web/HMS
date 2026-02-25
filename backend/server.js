@@ -28,6 +28,8 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
 const labReportRoutes = require('./routes/labReportRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -40,6 +42,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/medical-records', medicalRecordRoutes);
 app.use('/api/lab-reports', labReportRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/departments', departmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 

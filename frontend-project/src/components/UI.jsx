@@ -55,7 +55,20 @@ export const Input = ({ label, error, className = "", ...props }) => (
     </div>
 );
 
-export const Badge = ({ children, variant = "info" }) => {
+export const Select = ({ label, error, className = "", children, ...props }) => (
+    <div className={`space-y-1.5`}>
+        {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
+        <select
+            className={`w-full px-4 py-2 bg-white border rounded-lg text-slate-900 text-sm outline-none transition-all focus:ring-2 focus:ring-blue-100 placeholder:text-slate-400 ${error ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'} ${className}`}
+            {...props}
+        >
+            {children}
+        </select>
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+);
+
+export const Badge = ({ children, variant = "info", className = "" }) => {
     const variants = {
         success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
         info: 'bg-blue-50 text-blue-700 border-blue-100',
@@ -64,7 +77,7 @@ export const Badge = ({ children, variant = "info" }) => {
     };
 
     return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${variants[variant]}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${variants[variant] || variants.info} ${className}`}>
             {children}
         </span>
     );

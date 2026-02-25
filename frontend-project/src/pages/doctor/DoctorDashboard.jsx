@@ -11,19 +11,24 @@ import {
     ChevronRight,
     TrendingUp
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getDoctorStats } from '../../services/dashboardService';
 import { getDoctorAppointments, updateAppointment } from '../../services/appointmentService';
 import { getDoctor } from '../../services/doctorService';
-import { Button } from '../../components/UI';
+import { Button, Modal, Badge } from '../../components/UI';
 
 const DoctorDashboard = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [stats, setStats] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [doctorProfile, setDoctorProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [selectedApt, setSelectedApt] = useState(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -56,12 +61,22 @@ const DoctorDashboard = () => {
     const handleUpdateStatus = async (id, status) => {
         try {
             await updateAppointment(id, { status });
-            // Refresh appointments
-            const res = await getDoctorAppointments(user.doctorId);
-            setAppointments(res.data.data.slice(0, 5));
+            // Refresh dashboard data
+            const [statsRes, appointmentsRes] = await Promise.all([
+                getDoctorStats(user.doctorId),
+                getDoctorAppointments(user.doctorId)
+            ]);
+            setStats(statsRes.data?.data);
+            setAppointments(appointmentsRes.data?.data || []);
+            setIsViewModalOpen(false);
         } catch (err) {
             console.error('Error updating status:', err);
         }
+    };
+
+    const handleViewDetails = (apt) => {
+        setSelectedApt(apt);
+        setIsViewModalOpen(true);
     };
 
     if (loading) return <div className="flex items-center justify-center h-[60vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -172,7 +187,10 @@ const DoctorDashboard = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
-                                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                                <button
+                                                    onClick={() => handleViewDetails(apt)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details"
+                                                >
                                                     <Eye size={18} />
                                                 </button>
                                                 {apt.status === 'Pending' && (
@@ -225,7 +243,12 @@ const DoctorDashboard = () => {
                                     </div>
                                     <h4 className="font-bold text-slate-900 mb-1">{apt.patient?.user?.name}</h4>
                                     <p className="text-slate-600 text-xs mb-3 line-clamp-2">{apt.reason || 'No details provided'}</p>
-                                    <Button variant="danger" size="sm" className="w-full h-9 rounded-xl text-xs">
+                                    <Button
+                                        variant="danger"
+                                        size="sm"
+                                        className="w-full h-9 rounded-xl text-xs"
+                                        onClick={() => handleViewDetails(apt)}
+                                    >
                                         Attend Now
                                     </Button>
                                 </div>
@@ -241,6 +264,81 @@ const DoctorDashboard = () => {
                     </div>
                 </div>
             </div>
+            {/* Appointment Detail Modal */}
+            <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="Consultation Details">
+                {selectedApt && (
+                    <div className="space-y-6">
+                        <div className="bg-slate-50 p-6 rounded-2xl flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl uppercase">
+                                    {selectedApt.patient?.user?.name?.charAt(0)}
+                                </div>
+                                <div>
+                                    <h4 className="text-xl font-bold text-slate-900">{selectedApt.patient?.user?.name}</h4>
+                                    <p className="text-sm text-slate-500 font-medium">Age: {selectedApt.patient?.age} • {selectedApt.patient?.bloodGroup}</p>
+                                </div>
+                            </div>
+                            <Badge variant={selectedApt.isUrgent ? 'danger' : 'info'}>
+                                {selectedApt.isUrgent ? 'EMERGENCY' : 'Routine'}
+                            </Badge>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="p-4 bg-white border border-slate-100 rounded-xl">
+                                <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-1">Reason for Visit</p>
+                                <p className="font-bold text-slate-700">{selectedApt.reason || 'No specific reason recorded'}</p>
+                            </div>
+
+                            {selectedApt.isUrgent && (
+                                <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl">
+                                    <p className="flex items-center gap-2 text-rose-600 font-bold text-sm">
+                                        <AlertCircle size={16} />
+                                        Urgent Case Priority
+                                    </p>
+                                    <p className="text-xs text-rose-500 mt-1 font-medium">Please attend to this patient immediately. High priority triage marked by front desk.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Button variant="secondary" className="justify-center h-12 rounded-xl" onClick={() => setIsViewModalOpen(false)}>
+                                Close
+                            </Button>
+                            {selectedApt.status === 'Pending' && (
+                                <Button
+                                    variant="primary"
+                                    className="justify-center h-12 rounded-xl"
+                                    onClick={() => {
+                                        setIsViewModalOpen(false);
+                                        navigate('/doctor/prescriptions', { state: { aptId: selectedApt._id, patientId: selectedApt.patient?._id } });
+                                    }}
+                                >
+                                    Start Consultation
+                                </Button>
+                            )}
+                        </div>
+
+                        {selectedApt.status === 'Pending' && (
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    variant="danger"
+                                    className="flex-1 rounded-xl h-10 text-xs"
+                                    onClick={() => handleUpdateStatus(selectedApt._id, 'Cancelled')}
+                                >
+                                    Cancel Visit
+                                </Button>
+                                <Button
+                                    variant="success"
+                                    className="flex-1 rounded-xl h-10 text-xs"
+                                    onClick={() => handleUpdateStatus(selectedApt._id, 'Completed')}
+                                >
+                                    Mark as Arrived
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
