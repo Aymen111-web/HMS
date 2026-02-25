@@ -1,7 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
-// Placeholder for doctor routes
-router.get('/', (req, res) => res.send('Get All Doctors'));
+const {
+    getDoctors,
+    getDoctor,
+    createDoctor,
+    updateDoctor,
+    deleteDoctor
+} = require('../controllers/doctorController');
+
+router.get('/', getDoctors);
+router.get('/:id', getDoctor);
+router.post('/', createDoctor);
+router.put('/:id', updateDoctor);
+router.delete('/:id', deleteDoctor);
 
 module.exports = router;

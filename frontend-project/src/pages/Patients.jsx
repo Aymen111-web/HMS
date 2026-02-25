@@ -11,14 +11,22 @@ import {
     Loader2,
     AlertCircle
 } from 'lucide-react';
-import { Card, Button, Input, Badge } from '../components/UI';
-import api from '../services/api';
+import { Card, Button, Input, Badge, Modal } from '../components/UI';
+import { getPatients, createPatient } from '../services/patientService';
 
 const Patients = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newPatient, setNewPatient] = useState({
+        name: '',
+        email: '',
+        age: '',
+        bloodGroup: '',
+        password: 'password123'
+    });
 
     useEffect(() => {
         fetchPatients();
@@ -27,7 +35,7 @@ const Patients = () => {
     const fetchPatients = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/patients');
+            const response = await getPatients();
             if (response.data.success) {
                 setPatients(response.data.data);
             }
@@ -39,10 +47,23 @@ const Patients = () => {
         }
     };
 
+    const handleAddPatient = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await createPatient(newPatient);
+            if (response.data.success) {
+                setIsModalOpen(false);
+                fetchPatients();
+                setNewPatient({ name: '', email: '', age: '', bloodGroup: '', password: 'password123' });
+            }
+        } catch (err) {
+            setError('Failed to register patient.');
+        }
+    };
+
     const filteredPatients = patients.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p._id.toLowerCase().includes(searchTerm.toLowerCase())
+        p.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.user?.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -57,12 +78,27 @@ const Patients = () => {
                         <Download size={18} className="mr-2" />
                         Reload
                     </Button>
-                    <Button variant="primary" className="flex-1 sm:flex-none">
+                    <Button variant="primary" className="flex-1 sm:flex-none" onClick={() => setIsModalOpen(true)}>
                         <UserPlus size={18} className="mr-2" />
                         Add Patient
                     </Button>
                 </div>
             </div>
+
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register New Patient">
+                <form onSubmit={handleAddPatient} className="space-y-4">
+                    <Input label="Full Name" placeholder="Jane Doe" required value={newPatient.name} onChange={e => setNewPatient({ ...newPatient, name: e.target.value })} />
+                    <Input label="Email Address" type="email" placeholder="jane@example.com" required value={newPatient.email} onChange={e => setNewPatient({ ...newPatient, email: e.target.value })} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input label="Age" type="number" required value={newPatient.age} onChange={e => setNewPatient({ ...newPatient, age: e.target.value })} />
+                        <Input label="Blood Group" placeholder="O+" required value={newPatient.bloodGroup} onChange={e => setNewPatient({ ...newPatient, bloodGroup: e.target.value })} />
+                    </div>
+                    <div className="pt-4 flex gap-3">
+                        <Button variant="secondary" type="button" className="flex-1" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                        <Button variant="primary" type="submit" className="flex-1">Add Patient</Button>
+                    </div>
+                </form>
+            </Modal>
 
             <Card>
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -119,16 +155,16 @@ const Patients = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm uppercase">
-                                                    {patient.name.charAt(0)}
+                                                    {(patient.user?.name || 'P').charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-slate-800">{patient.name}</p>
+                                                    <p className="font-semibold text-slate-800">{patient.user?.name || 'Unknown'}</p>
                                                     <p className="text-xs text-slate-500 tracking-wider font-mono uppercase">ID: {patient._id.substring(0, 8)}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-600">
-                                            <span className="block">{patient.gender || 'N/A'}</span>
+                                            <span className="block">{patient.bloodGroup || 'N/A'}</span>
                                             <span className="text-xs text-slate-400">{patient.age || 'N/A'} Years Old</span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -139,7 +175,7 @@ const Patients = () => {
                                                 </div>
                                                 <div className="flex items-center gap-1.5 text-xs text-slate-600">
                                                     <Mail size={12} className="text-slate-400" />
-                                                    {patient.email || 'N/A'}
+                                                    {patient.user?.email || 'N/A'}
                                                 </div>
                                             </div>
                                         </td>
