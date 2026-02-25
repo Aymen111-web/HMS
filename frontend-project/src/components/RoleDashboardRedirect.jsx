@@ -9,15 +9,16 @@ const RoleDashboardRedirect = () => {
         return <Navigate to="/login" />;
     }
 
-    switch (user.role) {
-        case 'Admin':
-            return <Navigate to="/admin/dashboard" />;
-        case 'Doctor':
-            return <Navigate to="/doctor/dashboard" />;
-        case 'Patient':
-            return <Navigate to="/patient/dashboard" />;
+    const rawRole = user.role || '';
+    const role = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
+
+    switch (role) {
+        case 'Admin': return <Navigate to="/admin/dashboard" replace />;
+        case 'Doctor': return <Navigate to="/doctor/dashboard" replace />;
+        case 'Patient': return <Navigate to="/patient/dashboard" replace />;
         default:
-            return <Navigate to="/login" />;
+            console.error('RoleDashboardRedirect: Unknown role:', user.role);
+            return <Navigate to="/login" replace />;
     }
 };
 

@@ -12,7 +12,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input } from '../components/UI';
-import { getAppointments, createAppointment, updateAppointmentStatus } from '../services/appointmentService';
+import { getAppointments, createAppointment, updateAppointment } from '../services/appointmentService';
 import { getDoctors } from '../services/doctorService';
 import { getPatients } from '../services/patientService';
 import { useLocation } from 'react-router-dom';

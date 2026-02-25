@@ -44,8 +44,8 @@ const DoctorPrescriptions = () => {
                 prescriptionService.getDoctorPrescriptions(user.doctorId),
                 getDoctorAppointments(user.doctorId)
             ]);
-            setPrescriptions(prescRes.data);
-            setAppointments(apptRes.data.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled'));
+            setPrescriptions(prescRes.data.data || []);
+            setAppointments((apptRes.data.data || []).filter(a => a.status !== 'Completed' && a.status !== 'Cancelled'));
             setLoading(false);
         } catch (err) {
             console.error('Error fetching data:', err);

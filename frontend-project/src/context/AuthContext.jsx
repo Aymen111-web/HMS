@@ -4,8 +4,14 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem('hms_user');
-        return savedUser ? JSON.parse(savedUser) : null;
+        try {
+            const savedUser = localStorage.getItem('hms_user');
+            return savedUser ? JSON.parse(savedUser) : null;
+        } catch (err) {
+            console.error('Error parsing user from localStorage', err);
+            localStorage.removeItem('hms_user');
+            return null;
+        }
     });
     const [loading, setLoading] = useState(true);
 

@@ -26,7 +26,8 @@ const Login = () => {
                 localStorage.setItem('token', token);
 
                 // Role-based redirection
-                switch (user.role) {
+                const role = user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase();
+                switch (role) {
                     case 'Admin': navigate('/admin/dashboard'); break;
                     case 'Doctor': navigate('/doctor/dashboard'); break;
                     case 'Patient': navigate('/patient/dashboard'); break;

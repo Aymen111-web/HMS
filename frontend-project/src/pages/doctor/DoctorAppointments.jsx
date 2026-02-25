@@ -35,8 +35,8 @@ const DoctorAppointments = () => {
         try {
             setLoading(true);
             const res = await getDoctorAppointments(user.doctorId);
-            setAppointments(res.data);
-            setFilteredAppointments(res.data);
+            setAppointments(res.data.data || []);
+            setFilteredAppointments(res.data.data || []);
             setLoading(false);
         } catch (err) {
             console.error('Error fetching appointments:', err);

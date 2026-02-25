@@ -29,7 +29,7 @@ const UrgentCases = () => {
             setLoading(true);
             const res = await getDoctorAppointments(user.doctorId);
             // Filter only urgent and not completed/cancelled
-            const urgent = res.data.filter(a => a.isUrgent && a.status !== 'Completed' && a.status !== 'Cancelled');
+            const urgent = (res.data.data || []).filter(a => a.isUrgent && a.status !== 'Completed' && a.status !== 'Cancelled');
             setUrgentCases(urgent);
             setLoading(false);
         } catch (err) {

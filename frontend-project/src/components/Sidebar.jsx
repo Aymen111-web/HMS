@@ -19,10 +19,11 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const getBasePath = () => {
         if (!user) return '';
-        switch (user.role) {
-            case 'Admin': return '/admin';
-            case 'Doctor': return '/doctor';
-            case 'Patient': return '/patient';
+        const role = user.role?.toLowerCase();
+        switch (role) {
+            case 'admin': return '/admin';
+            case 'doctor': return '/doctor';
+            case 'patient': return '/patient';
             default: return '';
         }
     };
@@ -39,8 +40,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Reports', icon: FileText, path: `${basePath}/reports`, roles: ['Admin', 'Doctor'] },
     ];
 
+    const normalizedUserRole = user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1).toLowerCase();
     const filteredItems = navItems.filter(item =>
-        !item.roles || item.roles.includes(user?.role)
+        !item.roles || item.roles.includes(normalizedUserRole)
     );
 
     const handleLogout = () => {

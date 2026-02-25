@@ -27,12 +27,15 @@ const DoctorPatients = () => {
     useEffect(() => {
         const fetchPatients = async () => {
             try {
-                // For a doctor, patients are those who have made appointments with them
-                const appointmentsRes = await getDoctorAppointments(user.doctorId);
+                if (!user?.doctorId) {
+                    setLoading(false);
+                    return;
+                }
+                const res = await getDoctorAppointments(user.doctorId);
+                const aptList = res.data?.data || [];
 
-                // Extract unique patients
                 const uniquePatientsMap = new Map();
-                appointmentsRes.data.forEach(apt => {
+                aptList.forEach(apt => {
                     if (apt.patient && !uniquePatientsMap.has(apt.patient._id)) {
                         uniquePatientsMap.set(apt.patient._id, {
                             ...apt.patient,

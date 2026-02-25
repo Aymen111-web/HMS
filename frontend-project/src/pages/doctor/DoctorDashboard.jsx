@@ -28,7 +28,10 @@ const DoctorDashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                if (!user?.doctorId) return;
+                if (!user?.doctorId) {
+                    setLoading(false);
+                    return;
+                }
 
                 const [statsRes, appointmentsRes, doctorRes] = await Promise.all([
                     getDoctorStats(user.doctorId),
@@ -36,9 +39,9 @@ const DoctorDashboard = () => {
                     getDoctor(user.doctorId)
                 ]);
 
-                setStats(statsRes.data);
-                setAppointments(appointmentsRes.data.slice(0, 5)); // Only show top 5
-                setDoctorProfile(doctorRes.data);
+                setStats(statsRes.data?.data);
+                setAppointments(appointmentsRes.data?.data || []);
+                setDoctorProfile(doctorRes.data?.data);
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching dashboard data:', err);
@@ -55,7 +58,7 @@ const DoctorDashboard = () => {
             await updateAppointment(id, { status });
             // Refresh appointments
             const res = await getDoctorAppointments(user.doctorId);
-            setAppointments(res.data.slice(0, 5));
+            setAppointments(res.data.data.slice(0, 5));
         } catch (err) {
             console.error('Error updating status:', err);
         }
@@ -73,6 +76,12 @@ const DoctorDashboard = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
+            {error && (
+                <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center gap-3 text-rose-600 font-bold">
+                    <AlertCircle size={20} />
+                    {error}
+                </div>
+            )}
             {/* Header section with Doctor Profile */}
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row items-center gap-8 justify-between">
                 <div className="flex items-center gap-6">
@@ -80,11 +89,11 @@ const DoctorDashboard = () => {
                         {user?.name?.charAt(0)}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Welcome, Dr. {user?.name}</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">Welcome, Dr. {user?.name || 'Doctor'}</h1>
                         <p className="text-slate-500 font-medium">
-                            {doctorProfile?.specialization} • ID: {user?.doctorId?.substring(0, 8)}
+                            {doctorProfile?.specialization || 'Medical Specialist'} • ID: {String(user?.doctorId || 'N/A').substring(0, 8)}
                         </p>
-                        <p className="text-slate-400 text-sm">{user?.email}</p>
+                        <p className="text-slate-400 text-sm">{user?.email || ''}</p>
                     </div>
                 </div>
                 <div className="flex gap-3">
@@ -95,21 +104,24 @@ const DoctorDashboard = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {summaryCards.map((card, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={`${card.color} p-3 rounded-2xl text-white shadow-lg shadow-${card.color.split('-')[1]}-100`}>
-                                <card.icon size={24} />
+                {summaryCards.map((card, idx) => {
+                    if (!card || !card.icon) return null;
+                    return (
+                        <div key={idx} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className={`${card.color || 'bg-slate-500'} p-3 rounded-2xl text-white shadow-lg shadow-slate-100`}>
+                                    <card.icon size={24} />
+                                </div>
+                                <div className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                                    <TrendingUp size={12} className="mr-1" />
+                                    {card.trend}
+                                </div>
                             </div>
-                            <div className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                                <TrendingUp size={12} className="mr-1" />
-                                {card.trend}
-                            </div>
+                            <h3 className="text-slate-500 text-sm font-semibold mb-1">{card.title}</h3>
+                            <p className="text-2xl font-bold text-slate-900">{card.value}</p>
                         </div>
-                        <h3 className="text-slate-500 text-sm font-semibold mb-1">{card.title}</h3>
-                        <p className="text-2xl font-bold text-slate-900">{card.value}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -17,8 +17,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to="/login" />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/404" />; // Or a dedicated "Unauthorized" page
+    if (allowedRoles) {
+        const normalizedUserRole = user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase();
+        const normalizedAllowedRoles = allowedRoles.map(r => r.charAt(0).toUpperCase() + r.slice(1).toLowerCase());
+
+        if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
+            return <Navigate to="/404" replace />;
+        }
     }
 
     return children;
