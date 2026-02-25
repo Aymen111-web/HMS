@@ -24,6 +24,16 @@ import DoctorPatients from './pages/doctor/DoctorPatients';
 import DoctorPrescriptions from './pages/doctor/DoctorPrescriptions';
 import UrgentCases from './pages/doctor/UrgentCases';
 
+// Patient Pages
+import PatientDashboard from './pages/patient/PatientDashboard';
+import PatientAppointments from './pages/patient/PatientAppointments';
+import BookAppointment from './pages/patient/BookAppointment';
+import PatientPrescriptions from './pages/patient/PatientPrescriptions';
+import MedicalRecords from './pages/patient/MedicalRecords';
+import LabReports from './pages/patient/LabReports';
+import PatientPayments from './pages/patient/PatientPayments';
+import PatientProfile from './pages/patient/PatientProfile';
+
 function App() {
     return (
         <AuthProvider>
@@ -97,9 +107,14 @@ function App() {
                             </ProtectedRoute>
                         }
                     >
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="doctors" element={<Doctors />} />
-                        <Route path="appointments" element={<Appointments />} />
+                        <Route path="dashboard" element={<PatientDashboard />} />
+                        <Route path="appointments" element={<PatientAppointments />} />
+                        <Route path="book-appointment" element={<BookAppointment />} />
+                        <Route path="prescriptions" element={<PatientPrescriptions />} />
+                        <Route path="records" element={<MedicalRecords />} />
+                        <Route path="lab-reports" element={<LabReports />} />
+                        <Route path="payments" element={<PatientPayments />} />
+                        <Route path="profile" element={<PatientProfile />} />
                     </Route>
 
                     {/* 404 Route */}

@@ -25,6 +25,9 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
+const labReportRoutes = require('./routes/labReportRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -34,6 +37,9 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
+app.use('/api/lab-reports', labReportRoutes);
+app.use('/api/payments', paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 

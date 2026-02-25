@@ -35,7 +35,10 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
         { name: 'Patients', icon: Users, path: `${basePath}/patients`, roles: ['Admin', 'Doctor'] },
         { name: 'Doctors', icon: UserRound, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
-        { name: 'Prescriptions', icon: FileText, path: `${basePath}/prescriptions`, roles: ['Doctor'] },
+        { name: 'Prescriptions', icon: FileText, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient'] },
+        { name: 'Medical Records', icon: FileText, path: `${basePath}/records`, roles: ['Patient'] },
+        { name: 'Lab Reports', icon: FileText, path: `${basePath}/lab-reports`, roles: ['Patient'] },
+        { name: 'Payments', icon: FileText, path: `${basePath}/payments`, roles: ['Patient'] },
         { name: 'Urgent Cases', icon: AlertCircle, path: `${basePath}/urgent-cases`, roles: ['Doctor'] },
         { name: 'Reports', icon: FileText, path: `${basePath}/reports`, roles: ['Admin', 'Doctor'] },
     ];

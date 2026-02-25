@@ -62,6 +62,28 @@ exports.createAppointment = async (req, res) => {
     }
 };
 
+// @desc    Get appointments for a specific patient
+// @route   GET /api/appointments/patient/:patientId
+// @access  Private
+exports.getPatientAppointments = async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ patient: req.params.patientId })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name specialization' }
+            })
+            .sort({ date: -1, time: -1 });
+
+        res.json({
+            success: true,
+            count: appointments.length,
+            data: appointments
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // @desc    Get appointments for a specific doctor
 // @route   GET /api/appointments/doctor/:doctorId
 // @access  Private

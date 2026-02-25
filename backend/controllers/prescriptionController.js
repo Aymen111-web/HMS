@@ -46,6 +46,27 @@ exports.getDoctorPrescriptions = async (req, res) => {
     }
 };
 
+// @desc    Get prescriptions for a specific patient
+// @route   GET /api/prescriptions/patient/:patientId
+// @access  Private
+exports.getPatientPrescriptions = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({ patient: req.params.patientId })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name specialization' }
+            })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: prescriptions
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // @desc    Create new prescription
 // @route   POST /api/prescriptions
 // @access  Private
