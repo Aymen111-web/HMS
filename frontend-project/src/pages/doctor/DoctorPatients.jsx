@@ -16,9 +16,11 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { getDoctorAppointments } from '../../services/appointmentService';
 import { Button } from '../../components/UI';
+import { useNavigate } from 'react-router-dom';
 
 const DoctorPatients = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -109,7 +111,10 @@ const DoctorPatients = () => {
                             <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 text-2xl font-bold">
                                 {patient.user?.name?.charAt(0)}
                             </div>
-                            <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                            <button
+                                className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
+                                onClick={() => { const opts = ['View Prescriptions', 'Book Appointment']; const choice = window.confirm('Go to prescriptions for ' + patient.user?.name + '?'); if (choice) navigate('/doctor/prescriptions', { state: { patientId: patient._id } }); }}
+                            >
                                 <MoreVertical size={20} />
                             </button>
                         </div>
@@ -148,6 +153,7 @@ const DoctorPatients = () => {
                         <Button
                             variant="secondary"
                             className="w-full h-12 rounded-2xl text-blue-600 font-bold flex items-center justify-center gap-2 group-hover:bg-blue-600 group-hover:text-white transition-all"
+                            onClick={() => navigate('/doctor/prescriptions', { state: { patientId: patient._id } })}
                         >
                             View Medical File <ChevronRight size={18} />
                         </Button>

@@ -32,7 +32,7 @@ exports.getAppointments = async (req, res) => {
 // @access  Private
 exports.createAppointment = async (req, res) => {
     try {
-        const { patientId, doctorId, date, status } = req.body;
+        const { patientId, doctorId, date, time, isUrgent, reason, status } = req.body;
 
         // Check if patient exists
         const patient = await Patient.findById(patientId);
@@ -46,10 +46,17 @@ exports.createAppointment = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Doctor not found' });
         }
 
+        if (!time) {
+            return res.status(400).json({ success: false, message: 'Appointment time is required' });
+        }
+
         const appointment = await Appointment.create({
             patient: patientId,
             doctor: doctorId,
             date,
+            time,
+            isUrgent: isUrgent || false,
+            reason: reason || '',
             status: status || 'Pending'
         });
 

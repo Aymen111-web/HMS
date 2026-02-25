@@ -1,6 +1,7 @@
 import api from './api';
 
 export const getPatientProfile = (id) => api.get(`/patients/${id}`);
+export const getPatientByUserId = (userId) => api.get(`/patients/by-user/${userId}`);
 export const updatePatientProfile = (id, data) => api.put(`/patients/${id}`, data);
 export const getPatientMedicalRecords = (patientId) => api.get(`/medical-records/patient/${patientId}`);
 export const getPatientLabReports = (patientId) => api.get(`/lab-reports/patient/${patientId}`);

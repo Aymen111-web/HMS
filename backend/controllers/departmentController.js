@@ -1,6 +1,51 @@
 const Department = require('../models/Department');
 const Doctor = require('../models/Doctor');
 
+// Standard clinical departments (idempotent seed)
+const CLINICAL_DEPARTMENTS = [
+    { name: 'Cardiology', description: 'Heart and cardiovascular system disorders' },
+    { name: 'Neurology', description: 'Brain, spinal cord, and nervous system conditions' },
+    { name: 'Orthopedics', description: 'Bones, joints, ligaments, and musculoskeletal system' },
+    { name: 'Pediatrics', description: 'Medical care for infants, children, and adolescents' },
+    { name: 'Dermatology', description: 'Skin, hair, and nail conditions' },
+    { name: 'Ophthalmology', description: 'Eye and vision care' },
+    { name: 'Gynecology', description: 'Female reproductive health and obstetrics' },
+    { name: 'Oncology', description: 'Cancer diagnosis and treatment' },
+    { name: 'Psychiatry', description: 'Mental health and behavioral disorders' },
+    { name: 'General Surgery', description: 'Surgical procedures for general conditions' },
+    { name: 'Emergency Medicine', description: 'Acute care and emergency interventions' },
+    { name: 'Internal Medicine', description: 'Diagnosis and non-surgical treatment of adult diseases' },
+    { name: 'Radiology', description: 'Medical imaging and diagnostic radiology' },
+    { name: 'Anesthesiology', description: 'Anesthesia and perioperative care' },
+    { name: 'Urology', description: 'Urinary tract and male reproductive system' },
+    { name: 'ENT', description: 'Ear, nose, and throat disorders' },
+];
+
+// @desc    Seed standard clinical departments (idempotent)
+// @route   POST /api/departments/seed
+// @access  Public (safe — skips existing, insert-only)
+exports.seedDepartments = async (req, res) => {
+    try {
+        // insertMany with ordered:false — skips duplicates on unique name, never throws
+        const result = await Department.insertMany(CLINICAL_DEPARTMENTS, { ordered: false });
+        const existing = await Department.countDocuments();
+        res.json({
+            success: true,
+            inserted: result.length,
+            total: existing,
+            message: `${result.length} departments added. ${existing} total departments available.`
+        });
+    } catch (err) {
+        // E11000 = duplicate key — some already existed, that's fine
+        if (err.code === 11000 || (err.writeErrors && err.insertedDocs)) {
+            const existing = await Department.countDocuments();
+            return res.json({ success: true, inserted: err.insertedDocs?.length || 0, total: existing, message: 'Departments already seeded.' });
+        }
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
 // @desc    Get all departments
 // @route   GET /api/departments
 // @access  Public

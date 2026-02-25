@@ -5,6 +5,47 @@ const Payment = require('../models/Payment');
 const Department = require('../models/Department');
 const User = require('../models/User');
 
+// @desc    Get all currently online/active users
+// @route   GET /api/admin/active-users
+// @access  Private/Admin
+exports.getActiveUsers = async (req, res) => {
+    try {
+        const onlineUsers = await User.find({ isOnline: true }).select('-password').sort({ lastLogin: -1 });
+
+        const doctors = [];
+        const patients = [];
+        const admins = [];
+
+        await Promise.all(onlineUsers.map(async (u) => {
+            if (u.role === 'Doctor') {
+                const profile = await Doctor.findOne({ user: u._id }).select('specialization department');
+                doctors.push({ ...u.toObject(), profile });
+            } else if (u.role === 'Patient') {
+                const profile = await Patient.findOne({ user: u._id }).select('bloodGroup gender age');
+                patients.push({ ...u.toObject(), profile });
+            } else if (u.role === 'Admin') {
+                admins.push(u.toObject());
+            }
+        }));
+
+        res.json({
+            success: true,
+            data: {
+                total: onlineUsers.length,
+                doctors,
+                patients,
+                admins,
+                // counts for quick display
+                doctorCount: doctors.length,
+                patientCount: patients.length
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
 // @desc    Get detailed admin dashboard analytics
 // @route   GET /api/admin/analytics
 // @access  Private/Admin

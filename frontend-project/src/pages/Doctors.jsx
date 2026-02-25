@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit3, MoreVertical, ToggleLeft, ToggleRight, Building2, UserCircle2 } from 'lucide-react';
+import { Trash2, Edit3, ToggleLeft, ToggleRight, Building2, UserCircle2, Plus, Search, Filter, AlertCircle, Loader2, Stethoscope, Mail } from 'lucide-react';
 import { Card, Button, Input, Badge, Modal } from '../components/UI';
 import api from '../services/api';
-import { getDoctors, createDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
-import { getDepartments } from '../services/departmentService';
+import { getDoctors, deleteDoctor } from '../services/doctorService';
+import { getDepartments, seedDepartments } from '../services/departmentService';
 import { toggleUserStatus } from '../services/adminService';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,7 +38,17 @@ const Doctors = () => {
                 getDepartments()
             ]);
             if (drRes.data.success) setDoctors(drRes.data.data);
-            if (deptRes.data.success) setDepartments(deptRes.data.data);
+
+            if (deptRes.data.success) {
+                // If no departments exist yet, seed the standard ones then refetch
+                if (deptRes.data.data.length === 0) {
+                    await seedDepartments();
+                    const refetch = await getDepartments();
+                    if (refetch.data.success) setDepartments(refetch.data.data);
+                } else {
+                    setDepartments(deptRes.data.data);
+                }
+            }
         } catch (err) {
             setError('Failed to fetch system data. Please try again.');
         } finally {
@@ -251,8 +261,34 @@ const Doctors = () => {
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {/* Grid cards can be implemented here if needed, but table is priority for Admin */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredDoctors.map((dr, i) => {
+                        const colors = ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 'bg-indigo-500'];
+                        return (
+                            <div key={dr._id} className="group bg-white rounded-3xl border border-slate-100 p-7 shadow-sm hover:shadow-xl hover:border-blue-100 hover:-translate-y-1 transition-all duration-300">
+                                <div className="flex items-center gap-4 mb-5">
+                                    <div className={`h-16 w-16 rounded-2xl ${colors[i % colors.length]} flex items-center justify-center text-white text-xl font-black`}>
+                                        {dr.user?.name?.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-black text-slate-900 truncate">Dr. {dr.user?.name}</h3>
+                                        <p className="text-xs font-bold text-blue-600 truncate">{dr.specialization}</p>
+                                    </div>
+                                    <Badge variant={dr.status === 'Active' ? 'success' : 'warning'}>{dr.status}</Badge>
+                                </div>
+                                <div className="space-y-2 py-4 border-y border-slate-50 mb-5">
+                                    <div className="flex items-center gap-2 text-xs text-slate-500"><Mail size={12} className="text-slate-300" />{dr.user?.email}</div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500"><Building2 size={12} className="text-slate-300" />{dr.department?.name || 'Unassigned'}</div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500"><Stethoscope size={12} className="text-slate-300" />Fee: ${dr.fee}</div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button variant="secondary" className="flex-1 h-10 rounded-xl text-sm font-bold" onClick={() => { setEditingDoctor(dr); setNewDoctor({ name: dr.user?.name, email: dr.user?.email, specialization: dr.specialization, department: dr.department?._id || '', fee: dr.fee }); setIsModalOpen(true); }}><Edit3 size={14} className="mr-1" />Edit</Button>
+                                    <button className="h-10 w-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all" onClick={() => handleDeleteDoctor(dr._id)}><Trash2 size={16} /></button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {filteredDoctors.length === 0 && <div className="col-span-full py-20 bg-white rounded-3xl border border-slate-100 flex flex-col items-center text-slate-300"><UserCircle2 size={64} className="mb-4 opacity-30" /><p className="font-bold">No doctors found</p></div>}
                 </div>
             )}
 
@@ -293,17 +329,31 @@ const Doctors = () => {
                         )}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-bold text-slate-700 ml-1">Clinical Department</label>
+                                <label className="text-sm font-bold text-slate-700 ml-1">
+                                    Clinical Department
+                                    {departments.length > 0 && (
+                                        <span className="ml-2 text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+                                            {departments.length} available
+                                        </span>
+                                    )}
+                                </label>
                                 <select
-                                    className="w-full h-14 bg-slate-50 border-none rounded-2xl px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-100 outline-none"
+                                    className="w-full h-14 bg-slate-50 border-none rounded-2xl px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-100 outline-none cursor-pointer"
                                     required
                                     value={newDoctor.department}
                                     onChange={e => setNewDoctor({ ...newDoctor, department: e.target.value })}
                                 >
-                                    <option value="">Select Dept</option>
-                                    {departments.map(dept => (
-                                        <option key={dept._id} value={dept._id}>{dept.name}</option>
-                                    ))}
+                                    <option value="">— Select Clinical Department —</option>
+                                    {departments.length === 0 ? (
+                                        <option disabled>Loading departments...</option>
+                                    ) : (
+                                        departments
+                                            .filter(d => d.status !== 'Inactive')
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map(dept => (
+                                                <option key={dept._id} value={dept._id}>{dept.name}</option>
+                                            ))
+                                    )}
                                 </select>
                             </div>
                             <Input

@@ -6,7 +6,9 @@ const User = require('../models/User');
 // @access  Public
 exports.getDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().populate('user', 'name email role');
+        const doctors = await Doctor.find()
+            .populate('user', 'name email role isOnline lastLogin')
+            .populate('department', 'name status');
         res.json({
             success: true,
             count: doctors.length,
@@ -22,9 +24,28 @@ exports.getDoctors = async (req, res) => {
 // @access  Public
 exports.getDoctor = async (req, res) => {
     try {
-        const doctor = await Doctor.findById(req.params.id).populate('user', 'name email role');
+        const doctor = await Doctor.findById(req.params.id)
+            .populate('user', 'name email role isOnline lastLogin')
+            .populate('department', 'name status');
         if (!doctor) {
             return res.status(404).json({ success: false, message: 'Doctor not found' });
+        }
+        res.json({ success: true, data: doctor });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get doctor by userId (for recovery when doctorId missing from token)
+// @route   GET /api/doctors/by-user/:userId
+// @access  Private
+exports.getDoctorByUserId = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({ user: req.params.userId })
+            .populate('user', 'name email role isOnline lastLogin')
+            .populate('department', 'name status');
+        if (!doctor) {
+            return res.status(404).json({ success: false, message: 'Doctor not found for this user' });
         }
         res.json({ success: true, data: doctor });
     } catch (err) {

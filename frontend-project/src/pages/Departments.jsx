@@ -13,7 +13,7 @@ import {
     Building
 } from 'lucide-react';
 import { Card, Button, Input, Modal, Badge } from '../components/UI';
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from '../services/departmentService';
+import { getDepartments, createDepartment, updateDepartment, deleteDepartment, seedDepartments } from '../services/departmentService';
 import { getDoctors } from '../services/doctorService';
 
 const Departments = () => {
@@ -42,8 +42,17 @@ const Departments = () => {
                 getDepartments(),
                 getDoctors()
             ]);
-            if (deptRes.data.success) setDepartments(deptRes.data.data);
             if (drRes.data.success) setDoctors(drRes.data.data);
+            if (deptRes.data.success) {
+                if (deptRes.data.data.length === 0) {
+                    // Auto-seed standard departments on first visit
+                    await seedDepartments();
+                    const refetch = await getDepartments();
+                    if (refetch.data.success) setDepartments(refetch.data.data);
+                } else {
+                    setDepartments(deptRes.data.data);
+                }
+            }
         } catch (err) {
             setError('Failed to fetch department data.');
         } finally {

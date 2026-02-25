@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 // @access  Public
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, specialization, department, fee } = req.body;
 
         // Check if user exists
         let user = await User.findOne({ email });
@@ -32,11 +32,15 @@ exports.register = async (req, res) => {
         let patientId = null;
 
         if (role === 'Doctor') {
-            const doctor = await Doctor.create({
+            const doctorData = {
                 user: user._id,
-                specialization: 'General',
-                fee: 500
-            });
+                specialization: specialization || 'General',
+                fee: fee || 500
+            };
+            // Only attach department if provided (it's an ObjectId ref)
+            if (department) doctorData.department = department;
+
+            const doctor = await Doctor.create(doctorData);
             doctorId = doctor._id;
         } else if (role === 'Patient') {
             const patient = await Patient.create({
@@ -99,6 +103,12 @@ exports.login = async (req, res) => {
             if (patient) patientId = patient._id;
         }
 
+        // Mark user as online and record login time
+        await User.findByIdAndUpdate(user._id, {
+            isOnline: true,
+            lastLogin: new Date()
+        });
+
         // Create token
         const token = jwt.sign(
             { id: user._id, role: user.role },
@@ -120,5 +130,33 @@ exports.login = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+};
+
+// @desc    Logout user (mark offline)
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const jwt = require('jsonwebtoken');
+            const token = authHeader.split(' ')[1];
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                await User.findByIdAndUpdate(decoded.id, { isOnline: false });
+            } catch (e) {
+                // Token may be expired — try to mark offline by body userId
+                if (req.body?.userId) {
+                    await User.findByIdAndUpdate(req.body.userId, { isOnline: false });
+                }
+            }
+        } else if (req.body?.userId) {
+            await User.findByIdAndUpdate(req.body.userId, { isOnline: false });
+        }
+
+        res.json({ success: true, message: 'Logged out successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Stethoscope, ChevronLeft, ChevronRight, Filter, Plus, Loader2, AlertCircle, CheckCircle2, XCircle, AlertTriangle, Building2, Search, MoreHorizontal } from 'lucide-react';
+import { Calendar, Clock, User, Stethoscope, ChevronLeft, ChevronRight, Filter, Plus, Loader2, AlertCircle, CheckCircle2, XCircle, AlertTriangle, Building2, Search, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input } from '../components/UI';
 import { getAppointments, createAppointment, updateAppointment, deleteAppointment } from '../services/appointmentService';
 import { getDoctors } from '../services/doctorService';
@@ -66,13 +66,22 @@ const Appointments = () => {
         e.preventDefault();
         try {
             setLoading(true);
+            setError('');
             const combinedDate = new Date(`${formData.date}T${formData.time}`);
-            await createAppointment({ ...formData, date: combinedDate });
+            await createAppointment({
+                patientId: formData.patientId,
+                doctorId: formData.doctorId,
+                date: combinedDate,
+                time: formData.time,          // required by model — stored separately
+                isUrgent: formData.isUrgent,
+                reason: formData.reason
+            });
             setIsModalOpen(false);
             setFormData({ patientId: '', doctorId: '', date: '', time: '09:00', isUrgent: false, reason: '' });
             fetchData();
         } catch (err) {
-            setError('Global scheduling conflict detected.');
+            const msg = err.response?.data?.message || 'Failed to confirm reservation.';
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -269,11 +278,18 @@ const Appointments = () => {
                             <label htmlFor="adm-urgent" className="font-black text-slate-700 text-sm cursor-pointer">Escalate as Urgent Case</label>
                         </div>
                     </div>
-                    <div className="pt-4 flex gap-4">
-                        <Button variant="secondary" type="button" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setIsModalOpen(false)}>Abort</Button>
-                        <Button variant="primary" type="submit" className="flex-1 h-14 rounded-2xl font-bold" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm Reservation'}
-                        </Button>
+                    <div className="pt-4 flex flex-col gap-3">
+                        {error && (
+                            <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-2 text-rose-600 text-sm font-bold">
+                                <AlertTriangle size={16} />{error}
+                            </div>
+                        )}
+                        <div className="flex gap-4">
+                            <Button variant="secondary" type="button" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setIsModalOpen(false)}>Abort</Button>
+                            <Button variant="primary" type="submit" className="flex-1 h-14 rounded-2xl font-bold" disabled={loading}>
+                                {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm Reservation'}
+                            </Button>
+                        </div>
                     </div>
                 </form>
             </Modal>
@@ -311,8 +327,26 @@ const Appointments = () => {
                             <p className="text-sm font-bold text-slate-600 leading-relaxed italic">"{selectedApt.reason || 'General routine medical evaluation and diagnostic monitoring.'}"</p>
                         </div>
 
-                        <div className="pt-4 flex gap-4">
-                            <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setIsDetailsModalOpen(false)}>Dismiss</Button>
+                        <div className="pt-4 flex gap-3 flex-wrap">
+                            {selectedApt.status === 'Pending' && (
+                                <Button
+                                    variant="primary"
+                                    className="flex-1 h-14 rounded-2xl font-bold bg-blue-600"
+                                    onClick={() => handleUpdateStatus(selectedApt._id, 'Confirmed')}
+                                >
+                                    <CheckCircle2 size={18} className="mr-2" /> Confirm Appointment
+                                </Button>
+                            )}
+                            {(selectedApt.status === 'Pending' || selectedApt.status === 'Confirmed') && (
+                                <Button
+                                    variant="primary"
+                                    className="flex-1 h-14 rounded-2xl font-bold bg-emerald-600 border-emerald-600"
+                                    onClick={() => handleUpdateStatus(selectedApt._id, 'Completed')}
+                                >
+                                    <CheckCircle2 size={18} className="mr-2" /> Mark Completed
+                                </Button>
+                            )}
+                            <Button variant="secondary" className="h-14 rounded-2xl font-bold" onClick={() => setIsDetailsModalOpen(false)}>Dismiss</Button>
                             <Button variant="ghost" className="h-14 w-14 rounded-2xl bg-rose-50 text-rose-600" onClick={() => handleDelete(selectedApt._id)}><Trash2 size={20} /></Button>
                         </div>
                     </div>

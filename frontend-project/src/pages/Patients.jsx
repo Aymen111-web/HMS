@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit3, Eye, UserX, UserCheck, ShieldAlert, History } from 'lucide-react';
+import { Trash2, Edit3, Eye, UserX, UserCheck, ShieldAlert, History, Search, Download, Filter, Plus, Loader2, Phone, Mail, UserPlus } from 'lucide-react';
 import { Card, Button, Input, Badge, Modal } from '../components/UI';
 import { useLocation } from 'react-router-dom';
 import api from '../services/api';
@@ -100,9 +100,14 @@ const Patients = () => {
                     <p className="text-slate-500 font-medium">Global database of all hospital patients and medical identities</p>
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
-                    <Button variant="secondary" className="rounded-2xl h-12 bg-white" onClick={fetchPatients}>
+                    <Button variant="secondary" className="rounded-2xl h-12 bg-white" onClick={() => {
+                        const csv = ['Name,Email,Blood Group,Age,Status', ...patients.map(p => `${p.user?.name},${p.user?.email},${p.bloodGroup || ''},${p.age || ''},${p.status || 'Active'}`)].join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'patients.csv'; a.click();
+                    }}>
                         <Download size={20} className="mr-2" />
-                        Export Data
+                        Export CSV
                     </Button>
                     <Button variant="primary" className="rounded-2xl h-12 px-6 shadow-xl shadow-blue-100" onClick={() => setIsModalOpen(true)}>
                         <Plus size={20} className="mr-2" />
@@ -310,7 +315,10 @@ const Patients = () => {
 
                         <div className="pt-4 flex gap-4">
                             <Button variant="secondary" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setIsViewModalOpen(false)}>Dismiss</Button>
-                            <Button variant="primary" className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-blue-100" onClick={() => alert('Editing patient records is enabled in full staff portal.')}>Modify File</Button>
+                            <Button variant="primary" className="flex-1 h-14 rounded-2xl font-bold shadow-xl shadow-blue-100" onClick={() => {
+                                setIsViewModalOpen(false);
+                                setIsModalOpen(true);
+                            }}>Edit Patient</Button>
                         </div>
                     </div>
                 )}

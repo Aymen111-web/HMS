@@ -20,8 +20,10 @@ import {
 } from 'lucide-react';
 import { Card, Button, Badge, Input, Modal } from '../components/UI';
 import { getAllPayments, getBillingStats, updatePaymentStatus } from '../services/billingService';
+import { useNavigate } from 'react-router-dom';
 
 const Billing = () => {
+    const navigate = useNavigate();
     const [payments, setPayments] = useState([]);
     const [stats, setStats] = useState({
         totalRevenue: 0,
@@ -103,11 +105,16 @@ const Billing = () => {
                     <p className="text-slate-500 font-medium">Global billing management and revenue analytics console</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="secondary" className="rounded-2xl h-12 bg-white shadow-sm">
+                    <Button variant="secondary" className="rounded-2xl h-12 bg-white shadow-sm" onClick={() => {
+                        const csv = ['ID,Patient,Amount,Status,Date', ...payments.map(p => `${p._id},${p.patient?.user?.name || ''},${p.amount},${p.status},${new Date(p.createdAt).toLocaleDateString()}`)].join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'audit-log.csv'; a.click();
+                    }}>
                         <Receipt size={20} className="mr-2" />
                         Audit Log
                     </Button>
-                    <Button variant="primary" className="rounded-2xl h-12 px-6 shadow-xl shadow-blue-100">
+                    <Button variant="primary" className="rounded-2xl h-12 px-6 shadow-xl shadow-blue-100" onClick={() => window.print()}>
                         <TrendingUp size={20} className="mr-2" />
                         Rev Report
                     </Button>
@@ -209,10 +216,21 @@ const Billing = () => {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button className="h-10 w-10 text-slate-300 hover:text-blue-600 hover:bg-white hover:shadow-md rounded-xl transition-all flex items-center justify-center">
+                                            <button
+                                                title="View Receipt"
+                                                onClick={() => alert(`Receipt\nID: ${pay._id}\nPatient: ${pay.patient?.user?.name}\nAmount: $${pay.amount}\nStatus: ${pay.status}\nDate: ${new Date(pay.createdAt).toLocaleDateString()}`)}
+                                                className="h-10 w-10 text-slate-300 hover:text-blue-600 hover:bg-white hover:shadow-md rounded-xl transition-all flex items-center justify-center">
                                                 <FileText size={18} />
                                             </button>
-                                            <button className="h-10 w-10 text-slate-300 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all flex items-center justify-center">
+                                            <button
+                                                title="Download Receipt"
+                                                onClick={() => {
+                                                    const content = `PAYMENT RECEIPT\n${'='.repeat(30)}\nID: ${pay._id}\nPatient: ${pay.patient?.user?.name}\nAmount: $${pay.amount}\nStatus: ${pay.status}\nDate: ${new Date(pay.createdAt).toLocaleDateString()}`;
+                                                    const blob = new Blob([content], { type: 'text/plain' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const a = document.createElement('a'); a.href = url; a.download = `receipt-${pay._id.slice(0, 8)}.txt`; a.click();
+                                                }}
+                                                className="h-10 w-10 text-slate-300 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all flex items-center justify-center">
                                                 <Download size={18} />
                                             </button>
                                         </div>
