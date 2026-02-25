@@ -62,15 +62,43 @@ exports.createAppointment = async (req, res) => {
     }
 };
 
-// @desc    Update appointment status
+// @desc    Get appointments for a specific doctor
+// @route   GET /api/appointments/doctor/:doctorId
+// @access  Private
+exports.getDoctorAppointments = async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ doctor: req.params.doctorId })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name email' }
+            })
+            .sort({ date: 1, time: 1 });
+
+        res.json({
+            success: true,
+            count: appointments.length,
+            data: appointments
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Update appointment status/details
 // @route   PATCH /api/appointments/:id
 // @access  Private
-exports.updateAppointmentStatus = async (req, res) => {
+exports.updateAppointment = async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status, consultationNotes, diagnosis } = req.body;
+
+        const updateData = {};
+        if (status) updateData.status = status;
+        if (consultationNotes) updateData.consultationNotes = consultationNotes;
+        if (diagnosis) updateData.diagnosis = diagnosis;
+
         const appointment = await Appointment.findByIdAndUpdate(
             req.params.id,
-            { status },
+            updateData,
             { new: true, runValidators: true }
         );
 

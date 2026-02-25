@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Doctor = require('../models/Doctor');
+const Patient = require('../models/Patient');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -26,6 +28,23 @@ exports.register = async (req, res) => {
             role
         });
 
+        let doctorId = null;
+        let patientId = null;
+
+        if (role === 'Doctor') {
+            const doctor = await Doctor.create({
+                user: user._id,
+                specialization: 'General',
+                fee: 500
+            });
+            doctorId = doctor._id;
+        } else if (role === 'Patient') {
+            const patient = await Patient.create({
+                user: user._id
+            });
+            patientId = patient._id;
+        }
+
         // Create token
         const token = jwt.sign(
             { id: user._id, role: user.role },
@@ -40,7 +59,9 @@ exports.register = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                doctorId,
+                patientId
             }
         });
     } catch (err) {
@@ -67,6 +88,17 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        let doctorId = null;
+        let patientId = null;
+
+        if (user.role === 'Doctor') {
+            const doctor = await Doctor.findOne({ user: user._id });
+            if (doctor) doctorId = doctor._id;
+        } else if (user.role === 'Patient') {
+            const patient = await Patient.findOne({ user: user._id });
+            if (patient) patientId = patient._id;
+        }
+
         // Create token
         const token = jwt.sign(
             { id: user._id, role: user.role },
@@ -81,7 +113,9 @@ exports.login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                doctorId,
+                patientId
             }
         });
     } catch (err) {

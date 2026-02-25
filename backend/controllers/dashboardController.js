@@ -52,3 +52,45 @@ exports.getRecentActivities = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+// @desc    Get dashboard stats for a specific doctor
+// @route   GET /api/dashboard/doctor/:doctorId
+// @access  Private
+exports.getDoctorStats = async (req, res) => {
+    try {
+        const doctorId = req.params.doctorId;
+
+        const [totalAppointments, appointmentsToday, pendingReports, urgentCases] = await Promise.all([
+            Appointment.countDocuments({ doctor: doctorId }),
+            Appointment.countDocuments({
+                doctor: doctorId,
+                date: {
+                    $gte: new Date().setHours(0, 0, 0, 0),
+                    $lte: new Date().setHours(23, 59, 59, 999)
+                }
+            }),
+            Appointment.countDocuments({ doctor: doctorId, status: 'Pending' }),
+            Appointment.countDocuments({ doctor: doctorId, isUrgent: true, status: { $ne: 'Completed' } })
+        ]);
+
+        // Get unique patients count
+        const uniquePatients = await Appointment.distinct('patient', { doctor: doctorId });
+
+        res.json({
+            success: true,
+            data: {
+                totalPatients: uniquePatients.length,
+                appointmentsToday,
+                upcomingAppointments: await Appointment.countDocuments({
+                    doctor: doctorId,
+                    date: { $gt: new Date() },
+                    status: 'Confirmed'
+                }),
+                pendingReports,
+                urgentCases
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

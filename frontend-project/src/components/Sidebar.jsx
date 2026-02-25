@@ -8,6 +8,7 @@ import {
     FileText,
     Settings,
     LogOut,
+    AlertCircle,
     X
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -30,10 +31,12 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: `${basePath}/dashboard`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
         { name: 'Patients', icon: Users, path: `${basePath}/patients`, roles: ['Admin', 'Doctor'] },
         { name: 'Doctors', icon: UserRound, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
-        { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
-        { name: 'Medical Records', icon: FileText, path: `${basePath}/records`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Prescriptions', icon: FileText, path: `${basePath}/prescriptions`, roles: ['Doctor'] },
+        { name: 'Urgent Cases', icon: AlertCircle, path: `${basePath}/urgent-cases`, roles: ['Doctor'] },
+        { name: 'Reports', icon: FileText, path: `${basePath}/reports`, roles: ['Admin', 'Doctor'] },
     ];
 
     const filteredItems = navItems.filter(item =>
