@@ -21,10 +21,17 @@ const Login = () => {
         try {
             const response = await api.post('/auth/login', { email, password });
             if (response.data.success) {
-                login(response.data.user);
-                // Save token to localStorage
-                localStorage.setItem('token', response.data.token);
-                navigate('/');
+                const { user, token } = response.data;
+                login(user);
+                localStorage.setItem('token', token);
+
+                // Role-based redirection
+                switch (user.role) {
+                    case 'Admin': navigate('/admin/dashboard'); break;
+                    case 'Doctor': navigate('/doctor/dashboard'); break;
+                    case 'Patient': navigate('/patient/dashboard'); break;
+                    default: navigate('/');
+                }
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');

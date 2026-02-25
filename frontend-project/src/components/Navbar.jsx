@@ -7,7 +7,11 @@ import {
     Hospital
 } from 'lucide-react';
 
+import { useAuth } from '../hooks/useAuth';
+
 const Navbar = ({ onMenuClick }) => {
+    const { user } = useAuth();
+
     return (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-30 px-4 md:px-8 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -49,8 +53,8 @@ const Navbar = ({ onMenuClick }) => {
 
                 <div className="flex items-center gap-3 pl-2">
                     <div className="text-right hidden sm:block">
-                        <p className="text-sm font-semibold text-slate-800 leading-none">Dr. John Doe</p>
-                        <p className="text-xs text-slate-500 mt-1">Administrator</p>
+                        <p className="text-sm font-semibold text-slate-800 leading-none">{user?.name || 'User'}</p>
+                        <p className="text-xs text-slate-500 mt-1">{user?.role || 'Staff'}</p>
                     </div>
                     <button className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 ring-2 ring-white shadow-sm hover:scale-105 transition-transform">
                         <CircleUserRound size={24} />

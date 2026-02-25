@@ -16,12 +16,24 @@ const Sidebar = ({ isOpen, onClose }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
+    const getBasePath = () => {
+        if (!user) return '';
+        switch (user.role) {
+            case 'Admin': return '/admin';
+            case 'Doctor': return '/doctor';
+            case 'Patient': return '/patient';
+            default: return '';
+        }
+    };
+
+    const basePath = getBasePath();
+
     const navItems = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Doctor', 'Patient'] },
-        { name: 'Patients', icon: Users, path: '/patients', roles: ['Admin', 'Doctor'] },
-        { name: 'Doctors', icon: UserRound, path: '/doctors', roles: ['Admin', 'Patient'] },
-        { name: 'Appointments', icon: CalendarCheck, path: '/appointments', roles: ['Admin', 'Doctor', 'Patient'] },
-        { name: 'Medical Records', icon: FileText, path: '/records', roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Dashboard', icon: LayoutDashboard, path: `${basePath}/dashboard`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Patients', icon: Users, path: `${basePath}/patients`, roles: ['Admin', 'Doctor'] },
+        { name: 'Doctors', icon: UserRound, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
+        { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Medical Records', icon: FileText, path: `${basePath}/records`, roles: ['Admin', 'Doctor', 'Patient'] },
     ];
 
     const filteredItems = navItems.filter(item =>

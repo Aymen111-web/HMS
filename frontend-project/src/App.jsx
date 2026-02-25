@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
+import RoleDashboardRedirect from './components/RoleDashboardRedirect';
 
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
@@ -39,35 +40,56 @@ function App() {
             }
           />
 
-          {/* Protected Dashboard Routes */}
+          {/* Dashboard Redirect Handler */}
           <Route
             path="/"
             element={
               <ProtectedRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
+                <RoleDashboardRedirect />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['Admin']}>
                 <DashboardLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="doctors" element={<Doctors />} />
+            <Route path="patients" element={<Patients />} />
+            <Route path="appointments" element={<Appointments />} />
+          </Route>
 
-            <Route
-              path="doctors"
-              element={
-                <ProtectedRoute allowedRoles={['Admin', 'Patient']}>
-                  <Doctors />
-                </ProtectedRoute>
-              }
-            />
+          {/* Doctor Routes */}
+          <Route
+            path="/doctor"
+            element={
+              <ProtectedRoute allowedRoles={['Doctor']}>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="patients" element={<Patients />} />
+            <Route path="appointments" element={<Appointments />} />
+          </Route>
 
-            <Route
-              path="patients"
-              element={
-                <ProtectedRoute allowedRoles={['Admin', 'Doctor']}>
-                  <Patients />
-                </ProtectedRoute>
-              }
-            />
-
+          {/* Patient Routes */}
+          <Route
+            path="/patient"
+            element={
+              <ProtectedRoute allowedRoles={['Patient']}>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="doctors" element={<Doctors />} />
             <Route path="appointments" element={<Appointments />} />
           </Route>
 
