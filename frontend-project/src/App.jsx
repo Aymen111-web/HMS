@@ -43,14 +43,31 @@ function App() {
           <Route
             path="/"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
                 <DashboardLayout />
               </ProtectedRoute>
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="doctors" element={<Doctors />} />
-            <Route path="patients" element={<Patients />} />
+
+            <Route
+              path="doctors"
+              element={
+                <ProtectedRoute allowedRoles={['Admin', 'Patient']}>
+                  <Doctors />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="patients"
+              element={
+                <ProtectedRoute allowedRoles={['Admin', 'Doctor']}>
+                  <Patients />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="appointments" element={<Appointments />} />
           </Route>
 

@@ -13,16 +13,20 @@ import {
 import { useAuth } from '../hooks/useAuth';
 
 const Sidebar = ({ isOpen, onClose }) => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const navItems = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-        { name: 'Patients', icon: Patients, path: '/patients' }, // Fix: Patients component path
-        { name: 'Doctors', icon: UserRound, path: '/doctors' },
-        { name: 'Appointments', icon: CalendarCheck, path: '/appointments' },
-        { name: 'Medical Records', icon: FileText, path: '/records' },
+        { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Patients', icon: Users, path: '/patients', roles: ['Admin', 'Doctor'] },
+        { name: 'Doctors', icon: UserRound, path: '/doctors', roles: ['Admin', 'Patient'] },
+        { name: 'Appointments', icon: CalendarCheck, path: '/appointments', roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Medical Records', icon: FileText, path: '/records', roles: ['Admin', 'Doctor', 'Patient'] },
     ];
+
+    const filteredItems = navItems.filter(item =>
+        !item.roles || item.roles.includes(user?.role)
+    );
 
     const handleLogout = () => {
         logout();
@@ -58,7 +62,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                         <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
                             Main Navigation
                         </p>
-                        {navItems.map((item) => (
+                        {filteredItems.map((item) => (
                             <NavLink
                                 key={item.name}
                                 to={item.path}
