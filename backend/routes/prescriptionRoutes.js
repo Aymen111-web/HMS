@@ -2,17 +2,23 @@ const express = require('express');
 const router = express.Router();
 const {
     getPrescriptions,
-    getDoctorPrescriptions,
-    getPatientPrescriptions,
+    getPrescription,
     createPrescription,
-    getPrescription
+    updatePrescription,
+    getPrescriptionInitData
 } = require('../controllers/prescriptionController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-// All routes are protected - you might want to add auth middleware here later
-router.get('/', getPrescriptions);
-router.post('/', createPrescription);
-router.get('/doctor/:doctorId', getDoctorPrescriptions);
-router.get('/patient/:patientId', getPatientPrescriptions);
-router.get('/:id', getPrescription);
+router.use(protect);
+
+router.route('/')
+    .get(getPrescriptions)
+    .post(authorize('Doctor'), createPrescription);
+
+router.get('/init/:appointmentId', authorize('Doctor'), getPrescriptionInitData);
+
+router.route('/:id')
+    .get(getPrescription)
+    .put(authorize('Doctor'), updatePrescription);
 
 module.exports = router;

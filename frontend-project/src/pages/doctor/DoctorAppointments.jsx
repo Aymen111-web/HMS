@@ -18,9 +18,11 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { getDoctorAppointments, updateAppointment } from '../../services/appointmentService';
 import { Button, Input } from '../../components/UI';
+import { useNavigate } from 'react-router-dom';
 
 const DoctorAppointments = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
     const [filteredAppointments, setFilteredAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -160,10 +162,10 @@ const DoctorAppointments = () => {
                                 {apt.status === 'Pending' && (
                                     <>
                                         <button
-                                            onClick={() => handleAction(apt._id, 'Completed')}
+                                            onClick={() => handleAction(apt._id, 'Confirmed')}
                                             className="flex-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-3 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
                                         >
-                                            <CheckCircle size={16} /> Complete
+                                            <CheckCircle size={16} /> Accept
                                         </button>
                                         <button
                                             onClick={() => handleAction(apt._id, 'Cancelled')}
@@ -173,9 +175,17 @@ const DoctorAppointments = () => {
                                         </button>
                                     </>
                                 )}
+                                {(apt.status === 'Scheduled' || apt.status === 'Confirmed') && (
+                                    <button
+                                        onClick={() => navigate(`/doctor/prescriptions/new/${apt._id}`)}
+                                        className="flex-1 bg-blue-600 text-white hover:bg-blue-700 py-3 rounded-2xl text-xs font-bold transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle size={16} /> Complete & Prescribe
+                                    </button>
+                                )}
                                 {apt.status === 'Completed' && (
-                                    <button className="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-2xl text-xs font-bold transition-colors flex items-center justify-center gap-2">
-                                        <FileText size={16} /> View Record
+                                    <button className="flex-1 bg-slate-50 text-slate-400 py-3 rounded-2xl text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                        <FileText size={16} /> Case Finished
                                     </button>
                                 )}
                             </div>

@@ -1,22 +1,17 @@
 import api from './api';
 
+export const getPrescriptions = () => api.get('/prescriptions');
+export const getPrescription = (id) => api.get(`/prescriptions/${id}`);
+export const createPrescription = (data) => api.post('/prescriptions', data);
+export const updatePrescription = (id, data) => api.put(`/prescriptions/${id}`, data);
+export const getPrescriptionInitData = (appointmentId) => api.get(`/prescriptions/init/${appointmentId}`);
+
 const prescriptionService = {
-    getAll: async () => {
-        const response = await api.get('/prescriptions');
-        return response.data;
-    },
-    getDoctorPrescriptions: async (doctorId) => {
-        const response = await api.get(`/prescriptions/doctor/${doctorId}`);
-        return response.data;
-    },
-    getById: async (id) => {
-        const response = await api.get(`/prescriptions/${id}`);
-        return response.data;
-    },
-    create: async (prescriptionData) => {
-        const response = await api.post('/prescriptions', prescriptionData);
-        return response.data;
-    }
+    getPrescriptions,
+    getPrescription,
+    createPrescription,
+    updatePrescription,
+    getPrescriptionInitData
 };
 
 export default prescriptionService;

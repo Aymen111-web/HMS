@@ -310,7 +310,7 @@ const DoctorDashboard = () => {
                                     className="justify-center h-12 rounded-xl"
                                     onClick={() => {
                                         setIsViewModalOpen(false);
-                                        navigate('/doctor/prescriptions', { state: { aptId: selectedApt._id, patientId: selectedApt.patient?._id } });
+                                        navigate(`/doctor/prescriptions/new/${selectedApt._id}`);
                                     }}
                                 >
                                     Start Consultation

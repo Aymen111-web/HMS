@@ -26,6 +26,7 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
 import DoctorPatients from './pages/doctor/DoctorPatients';
 import DoctorPrescriptions from './pages/doctor/DoctorPrescriptions';
+import CreatePrescription from './pages/doctor/CreatePrescription';
 import UrgentCases from './pages/doctor/UrgentCases';
 
 // Patient Pages
@@ -104,6 +105,7 @@ function App() {
                         <Route path="patients" element={<DoctorPatients />} />
                         <Route path="appointments" element={<DoctorAppointments />} />
                         <Route path="prescriptions" element={<DoctorPrescriptions />} />
+                        <Route path="prescriptions/new/:appointmentId" element={<CreatePrescription />} />
                         <Route path="urgent-cases" element={<UrgentCases />} />
                         <Route path="support" element={<Support />} />
                         <Route path="reports" element={<div>Doctor Reports Coming Soon</div>} />
