@@ -105,7 +105,7 @@ const PatientPrescriptions = () => {
                                         Dr. {p.doctor?.user?.name}
                                     </h4>
                                     <p className={`text-xs font-semibold mb-3 ${selectedPrescription?._id === p._id ? 'text-blue-100' : 'text-blue-600'}`}>
-                                        {p.doctor?.user?.specialization || 'Medical Specialist'}
+                                        {p.doctor?.specialization || 'Medical Specialist'}
                                     </p>
                                     <div className="flex items-center justify-between">
                                         <span className={`text-[11px] font-bold ${selectedPrescription?._id === p._id ? 'text-blue-200' : 'text-slate-400'}`}>
@@ -156,7 +156,7 @@ const PatientPrescriptions = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10 pt-8 border-t border-white/10">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 pt-8 border-t border-white/10">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-blue-400">
                                             <User size={24} />
@@ -164,7 +164,7 @@ const PatientPrescriptions = () => {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prescribing Doctor</p>
                                             <p className="font-bold">Dr. {selectedPrescription.doctor?.user?.name}</p>
-                                            <p className="text-blue-400 text-xs font-bold">{selectedPrescription.doctor?.user?.specialization || 'General Physician'}</p>
+                                            <p className="text-blue-400 text-xs font-bold">{selectedPrescription.doctor?.specialization || 'General Physician'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
@@ -174,6 +174,15 @@ const PatientPrescriptions = () => {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prescription Date</p>
                                             <p className="font-bold">{new Date(selectedPrescription.date || selectedPrescription.createdAt).toLocaleDateString('default', { dateStyle: 'long' })}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-amber-400">
+                                            <FileText size={24} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Diagnosis</p>
+                                            <p className="font-bold">{selectedPrescription.diagnosis || 'General Consultation'}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -182,3 +182,47 @@ exports.updatePrescription = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+// @desc    Get prescriptions for a specific patient
+// @route   GET /api/prescriptions/patient/:patientId
+// @access  Private
+exports.getPatientPrescriptions = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({ patient: req.params.patientId })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name' }
+            })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            count: prescriptions.length,
+            data: prescriptions
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get prescriptions for a specific doctor
+// @route   GET /api/prescriptions/doctor/:doctorId
+// @access  Private
+exports.getDoctorPrescriptions = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({ doctor: req.params.doctorId })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name email' }
+            })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            count: prescriptions.length,
+            data: prescriptions
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
