@@ -1,6 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { getAnalytics, getAllUsers, getActiveUsers, toggleUserStatus } = require('../controllers/adminController');
+const {
+    getAnalytics,
+    getAllUsers,
+    getActiveUsers,
+    toggleUserStatus,
+    getPharmacists,
+    createPharmacist,
+    deletePharmacist
+} = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
@@ -10,5 +18,11 @@ router.get('/analytics', getAnalytics);
 router.get('/users', getAllUsers);
 router.get('/active-users', getActiveUsers);
 router.patch('/users/:id/status', toggleUserStatus);
+
+router.route('/pharmacists')
+    .get(getPharmacists)
+    .post(createPharmacist);
+
+router.delete('/pharmacists/:id', deletePharmacist);
 
 module.exports = router;

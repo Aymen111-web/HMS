@@ -16,6 +16,7 @@ const RoleDashboardRedirect = () => {
         case 'Admin': return <Navigate to="/admin/dashboard" replace />;
         case 'Doctor': return <Navigate to="/doctor/dashboard" replace />;
         case 'Patient': return <Navigate to="/patient/dashboard" replace />;
+        case 'Pharmacist': return <Navigate to="/pharmacist/dashboard" replace />;
         default:
             console.error('RoleDashboardRedirect: Unknown role:', user.role);
             return <Navigate to="/login" replace />;

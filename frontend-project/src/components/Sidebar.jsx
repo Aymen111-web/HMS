@@ -36,19 +36,20 @@ const Sidebar = ({ isOpen, onClose }) => {
     const basePath = getBasePath();
 
     const navItems = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: `${basePath}/dashboard`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Dashboard', icon: LayoutDashboard, path: `${basePath}/dashboard`, roles: ['Admin', 'Doctor', 'Patient', 'Pharmacist'] },
         { name: 'Appointments', icon: CalendarCheck, path: `${basePath}/appointments`, roles: ['Admin', 'Doctor', 'Patient'] },
         { name: 'Patients', icon: Users, path: `${basePath}/patients`, roles: ['Admin', 'Doctor'] },
         { name: 'Doctors', icon: Stethoscope, path: `${basePath}/doctors`, roles: ['Admin', 'Patient'] },
         { name: 'Departments', icon: Building2, path: `${basePath}/departments`, roles: ['Admin'] },
+        { name: 'Pharmacists', icon: ClipboardList, path: `${basePath}/pharmacists`, roles: ['Admin'] },
         { name: 'Billing', icon: CreditCard, path: `${basePath}/billing`, roles: ['Admin'] },
-        { name: 'Prescriptions', icon: ClipboardList, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient'] },
+        { name: 'Prescriptions', icon: ClipboardList, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient', 'Pharmacist'] },
         { name: 'Records', icon: FileText, path: `${basePath}/records`, roles: ['Patient'] },
         { name: 'Lab Reports', icon: Activity, path: `${basePath}/lab-reports`, roles: ['Patient'] },
         { name: 'My Payments', icon: CreditCard, path: `${basePath}/payments`, roles: ['Patient'] },
         { name: 'Urgent Cases', icon: AlertCircle, path: `${basePath}/urgent-cases`, roles: ['Doctor'] },
         { name: 'Reports', icon: FileText, path: `${basePath}/reports`, roles: ['Admin', 'Doctor'] },
-        { name: 'Support Center', icon: AlertCircle, path: `${basePath}/support`, roles: ['Admin', 'Doctor', 'Patient'] },
+        { name: 'Support Center', icon: AlertCircle, path: `${basePath}/support`, roles: ['Admin', 'Doctor', 'Patient', 'Pharmacist'] },
     ];
 
     const normalizedUserRole = user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1).toLowerCase();

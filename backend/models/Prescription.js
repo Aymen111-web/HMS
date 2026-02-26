@@ -13,7 +13,8 @@ const prescriptionSchema = mongoose.Schema({
         instructions: { type: String }
     }],
     instructions: { type: String }, // General instructions
-    status: { type: String, enum: ['Active', 'Completed'], default: 'Active' }
+    status: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
+    pharmacyNotes: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

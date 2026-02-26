@@ -88,6 +88,7 @@ const DoctorPrescriptions = () => {
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Details</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Diagnosis</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Medicines</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pharmacy Status</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
@@ -129,6 +130,25 @@ const DoctorPrescriptions = () => {
                                                 <span className="text-sm border-b border-dotted border-slate-200 text-slate-600 font-semibold cursor-help" title={presc.medicines.map(m => m.name).join(', ')}>
                                                     {presc.medicines.length} Medicine(s)
                                                 </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col gap-1">
+                                                <Badge
+                                                    variant={
+                                                        presc.status === 'APPROVED' ? 'success' :
+                                                            presc.status === 'REJECTED' ? 'danger' :
+                                                                'warning'
+                                                    }
+                                                    className="w-fit"
+                                                >
+                                                    {presc.status || 'PENDING'}
+                                                </Badge>
+                                                {presc.status === 'REJECTED' && (
+                                                    <span className="text-[10px] text-rose-500 font-bold max-w-[150px] truncate" title={presc.pharmacyNotes}>
+                                                        Note: {presc.pharmacyNotes}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">

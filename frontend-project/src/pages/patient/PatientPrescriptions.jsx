@@ -8,7 +8,10 @@ import {
     User,
     ChevronRight,
     Printer,
-    Pill
+    Pill,
+    ShieldCheck,
+    AlertCircle,
+    CheckCircle
 } from 'lucide-react';
 import { Card, Button, Input, Badge } from '../../components/UI';
 import { useAuth } from '../../hooks/useAuth';
@@ -111,7 +114,17 @@ const PatientPrescriptions = () => {
                                         <span className={`text-[11px] font-bold ${selectedPrescription?._id === p._id ? 'text-blue-200' : 'text-slate-400'}`}>
                                             {p.medicines.length} Medicines
                                         </span>
-                                        <ChevronRight size={16} className={selectedPrescription?._id === p._id ? 'text-white' : 'text-slate-300'} />
+                                        <div className="flex items-center gap-2">
+                                            {p.status && (
+                                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black tracking-tighter ${p.status === 'APPROVED' ? 'bg-emerald-500 text-white' :
+                                                    p.status === 'REJECTED' ? 'bg-rose-500 text-white' :
+                                                        'bg-amber-400 text-white'
+                                                    }`}>
+                                                    {p.status}
+                                                </span>
+                                            )}
+                                            <ChevronRight size={16} className={selectedPrescription?._id === p._id ? 'text-white' : 'text-slate-300'} />
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -177,16 +190,38 @@ const PatientPrescriptions = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center text-amber-400">
-                                            <FileText size={24} />
+                                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${selectedPrescription.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' :
+                                            selectedPrescription.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400' :
+                                                'bg-amber-500/20 text-amber-400'
+                                            }`}>
+                                            <ShieldCheck size={24} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Diagnosis</p>
-                                            <p className="font-bold">{selectedPrescription.diagnosis || 'General Consultation'}</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pharmacy Status</p>
+                                            <p className="font-bold">{selectedPrescription.status || 'PENDING'}</p>
+                                            <p className="text-slate-400 text-[10px] font-bold">{selectedPrescription.status === 'APPROVED' ? 'Ready for Pickup' : selectedPrescription.status === 'REJECTED' ? 'Action Required' : 'Processing...'}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            {selectedPrescription.status === 'REJECTED' && (
+                                <div className="bg-rose-500/10 border-y border-rose-500/20 p-4 px-8">
+                                    <div className="flex items-center gap-3 text-rose-400">
+                                        <AlertCircle size={18} />
+                                        <p className="text-sm font-bold">Rejection Reason: <span className="text-rose-100 font-medium">{selectedPrescription.pharmacyNotes || 'No reason provided'}</span></p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedPrescription.status === 'APPROVED' && selectedPrescription.pharmacyNotes && (
+                                <div className="bg-emerald-500/10 border-y border-emerald-500/20 p-4 px-8">
+                                    <div className="flex items-center gap-3 text-emerald-400">
+                                        <CheckCircle size={18} />
+                                        <p className="text-sm font-bold">Pharmacist Note: <span className="text-emerald-100 font-medium">{selectedPrescription.pharmacyNotes}</span></p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Medications */}
                             <div className="p-8 space-y-8 bg-white">

@@ -186,3 +186,82 @@ exports.toggleUserStatus = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+// @desc    Get all pharmacists
+// @route   GET /api/admin/pharmacists
+// @access  Private/Admin
+exports.getPharmacists = async (req, res) => {
+    try {
+        const Pharmacist = require('../models/Pharmacist');
+        const pharmacists = await Pharmacist.find().populate('user', 'name email createdAt');
+        res.json({ success: true, data: pharmacists });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Create a new pharmacist
+// @route   POST /api/admin/pharmacists
+// @access  Private/Admin
+exports.createPharmacist = async (req, res) => {
+    try {
+        const { name, email, password, licenseNumber, phone } = req.body;
+        const bcrypt = require('bcryptjs');
+
+        // Check if user exists
+        let user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({ success: false, message: 'User already exists' });
+        }
+
+        // Create user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: 'Pharmacist'
+        });
+
+        const Pharmacist = require('../models/Pharmacist');
+        const pharmacist = await Pharmacist.create({
+            user: user._id,
+            licenseNumber,
+            phone
+        });
+
+        res.status(201).json({
+            success: true,
+            data: {
+                ...pharmacist.toObject(),
+                user: { name: user.name, email: user.email }
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Delete a pharmacist
+// @route   DELETE /api/admin/pharmacists/:id
+// @access  Private/Admin
+exports.deletePharmacist = async (req, res) => {
+    try {
+        const Pharmacist = require('../models/Pharmacist');
+        const pharmacist = await Pharmacist.findById(req.params.id);
+
+        if (!pharmacist) {
+            return res.status(404).json({ success: false, message: 'Pharmacist not found' });
+        }
+
+        // Delete associated user
+        await User.findByIdAndDelete(pharmacist.user);
+        // Delete pharmacist profile
+        await pharmacist.deleteOne();
+
+        res.json({ success: true, message: 'Pharmacist deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

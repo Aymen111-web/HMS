@@ -226,3 +226,73 @@ exports.getDoctorPrescriptions = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+
+// @desc    Get all pending prescriptions
+// @route   GET /api/prescriptions/pending
+// @access  Private/Pharmacist
+exports.getPendingPrescriptions = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({ status: 'PENDING' })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name email' }
+            })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name' }
+            })
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            count: prescriptions.length,
+            data: prescriptions
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Approve prescription
+// @route   PATCH /api/prescriptions/:id/approve
+// @access  Private/Pharmacist
+exports.approvePrescription = async (req, res) => {
+    try {
+        const prescription = await Prescription.findByIdAndUpdate(req.params.id, {
+            status: 'APPROVED',
+            pharmacyNotes: req.body.notes || 'Medicine approved and ready for pickup.'
+        }, { new: true });
+
+        if (!prescription) {
+            return res.status(404).json({ success: false, message: 'Prescription not found' });
+        }
+
+        res.json({ success: true, data: prescription });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Reject prescription
+// @route   PATCH /api/prescriptions/:id/reject
+// @access  Private/Pharmacist
+exports.rejectPrescription = async (req, res) => {
+    try {
+        if (!req.body.notes) {
+            return res.status(400).json({ success: false, message: 'Rejection reason is required' });
+        }
+
+        const prescription = await Prescription.findByIdAndUpdate(req.params.id, {
+            status: 'REJECTED',
+            pharmacyNotes: req.body.notes
+        }, { new: true });
+
+        if (!prescription) {
+            return res.status(404).json({ success: false, message: 'Prescription not found' });
+        }
+
+        res.json({ success: true, data: prescription });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

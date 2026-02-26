@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
+const Pharmacist = require('../models/Pharmacist');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -95,12 +96,17 @@ exports.login = async (req, res) => {
         let doctorId = null;
         let patientId = null;
 
+        let pharmacistId = null;
+
         if (user.role === 'Doctor') {
             const doctor = await Doctor.findOne({ user: user._id });
             if (doctor) doctorId = doctor._id;
         } else if (user.role === 'Patient') {
             const patient = await Patient.findOne({ user: user._id });
             if (patient) patientId = patient._id;
+        } else if (user.role === 'Pharmacist') {
+            const pharmacist = await Pharmacist.findOne({ user: user._id });
+            if (pharmacist) pharmacistId = pharmacist._id;
         }
 
         // Mark user as online and record login time
@@ -125,7 +131,8 @@ exports.login = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 doctorId,
-                patientId
+                patientId,
+                pharmacistId
             }
         });
     } catch (err) {

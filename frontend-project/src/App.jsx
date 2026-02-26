@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
+import Pharmacists from './pages/Pharmacists';
 import Appointments from './pages/Appointments';
 import Departments from './pages/Departments';
 import Billing from './pages/Billing';
@@ -39,6 +40,9 @@ import LabReports from './pages/patient/LabReports';
 import PatientPayments from './pages/patient/PatientPayments';
 import PatientProfile from './pages/patient/PatientProfile';
 import PatientDoctors from './pages/patient/PatientDoctors';
+
+// Pharmacist Pages
+import PharmacyDashboard from './pages/pharmacy/PharmacyDashboard';
 
 function App() {
     return (
@@ -67,7 +71,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            <ProtectedRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
+                            <ProtectedRoute allowedRoles={['Admin', 'Doctor', 'Patient', 'Pharmacist']}>
                                 <RoleDashboardRedirect />
                             </ProtectedRoute>
                         }
@@ -85,6 +89,7 @@ function App() {
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="doctors" element={<Doctors />} />
                         <Route path="patients" element={<Patients />} />
+                        <Route path="pharmacists" element={<Pharmacists />} />
                         <Route path="appointments" element={<Appointments />} />
                         <Route path="departments" element={<Departments />} />
                         <Route path="billing" element={<Billing />} />
@@ -109,6 +114,20 @@ function App() {
                         <Route path="urgent-cases" element={<UrgentCases />} />
                         <Route path="support" element={<Support />} />
                         <Route path="reports" element={<div>Doctor Reports Coming Soon</div>} />
+                    </Route>
+
+                    {/* Pharmacist Routes */}
+                    <Route
+                        path="/pharmacist"
+                        element={
+                            <ProtectedRoute allowedRoles={['Pharmacist']}>
+                                <DashboardLayout />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route path="dashboard" element={<PharmacyDashboard />} />
+                        <Route path="prescriptions" element={<PharmacyDashboard />} />
+                        <Route path="support" element={<Support />} />
                     </Route>
 
                     {/* Patient Routes */}

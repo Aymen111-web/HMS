@@ -412,6 +412,10 @@ const Dashboard = () => {
                                 <p className="text-xs font-black uppercase tracking-widest opacity-60 group-hover:opacity-100">Staff</p>
                                 <p className="font-black text-sm">Add Doctor</p>
                             </button>
+                            <button className="w-full p-4 rounded-2xl bg-amber-50 hover:bg-amber-600 hover:text-white transition-all text-left group" onClick={() => navigate('/admin/pharmacists')}>
+                                <p className="text-xs font-black uppercase tracking-widest opacity-60 group-hover:opacity-100">Pharmacy</p>
+                                <p className="font-black text-sm">Add Pharmacist</p>
+                            </button>
                         </div>
                     </Card>
 

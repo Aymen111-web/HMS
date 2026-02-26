@@ -7,7 +7,10 @@ const {
     updatePrescription,
     getPrescriptionInitData,
     getPatientPrescriptions,
-    getDoctorPrescriptions
+    getDoctorPrescriptions,
+    getPendingPrescriptions,
+    approvePrescription,
+    rejectPrescription
 } = require('../controllers/prescriptionController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -16,6 +19,10 @@ router.use(protect);
 router.route('/')
     .get(getPrescriptions)
     .post(authorize('Doctor'), createPrescription);
+
+router.get('/pending', authorize('Pharmacist'), getPendingPrescriptions);
+router.patch('/:id/approve', authorize('Pharmacist'), approvePrescription);
+router.patch('/:id/reject', authorize('Pharmacist'), rejectPrescription);
 
 router.get('/init/:appointmentId', authorize('Doctor'), getPrescriptionInitData);
 router.get('/patient/:patientId', getPatientPrescriptions);
