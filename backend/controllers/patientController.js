@@ -21,10 +21,27 @@ exports.getPatients = async (req, res) => {
 // @access  Private
 exports.getPatientByUserId = async (req, res) => {
     try {
-        const patient = await Patient.findOne({ user: req.params.userId }).populate('user', 'name email role');
+        let patient = await Patient.findOne({ user: req.params.userId }).populate('user', 'name email role');
+
         if (!patient) {
-            return res.status(404).json({ success: false, message: 'Patient not found for this user' });
+            // Check if user exists and is a patient
+            const User = require('../models/User');
+            const user = await User.findById(req.params.userId);
+
+            if (user && user.role === 'Patient') {
+                // Auto-create missing patient profile
+                patient = await Patient.create({
+                    user: user._id
+                });
+                // Populate the user field for the response
+                patient = await Patient.findById(patient._id).populate('user', 'name email role');
+            } else if (!user) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            } else {
+                return res.status(404).json({ success: false, message: 'Patient profile not found and user is not a patient' });
+            }
         }
+
         res.json({ success: true, data: patient });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

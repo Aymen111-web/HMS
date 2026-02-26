@@ -12,6 +12,7 @@ import {
 import { Card, Button, Input, Select, Badge } from '../../components/UI';
 import { useAuth } from '../../hooks/useAuth';
 import { getDoctors } from '../../services/doctorService';
+import { getDepartments } from '../../services/departmentService';
 import { createAppointment } from '../../services/patientService';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const BookAppointment = () => {
     const navigate = useNavigate();
 
     const [doctors, setDoctors] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -33,10 +35,7 @@ const BookAppointment = () => {
         reason: ''
     });
 
-    const departments = [
-        'Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics',
-        'Dermatology', 'Gastroenterology', 'General Medicine', 'Radiology'
-    ];
+    /* Removing hardcoded departments list as we'll fetch from API */
 
     const timeSlots = [
         '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
@@ -45,23 +44,56 @@ const BookAppointment = () => {
     ];
 
     useEffect(() => {
-        const fetchDoctors = async () => {
+        const fetchData = async () => {
             try {
-                const res = await getDoctors();
-                if (res.data.success) {
-                    setDoctors(res.data.data);
+                const [doctorsRes, deptsRes] = await Promise.all([
+                    getDoctors(),
+                    getDepartments()
+                ]);
+
+                if (doctorsRes.data.success) {
+                    setDoctors(doctorsRes.data.data);
+                }
+                if (deptsRes.data.success) {
+                    setDepartments(deptsRes.data.data);
                 }
             } catch (err) {
-                console.error('Error fetching doctors:', err);
+                console.error('Error fetching data:', err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchDoctors();
+        fetchData();
     }, []);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        if (name === 'doctorId') {
+            const selectedDoctor = doctors.find(d => d._id === value);
+            // Try to extract department name from populated object first, then fallback to specialization string
+            const deptName = selectedDoctor?.department?.name || selectedDoctor?.specialization;
+
+            setFormData(prev => ({
+                ...prev,
+                doctorId: value,
+                department: deptName || prev.department
+            }));
+        } else if (name === 'department') {
+            setFormData(prev => ({
+                ...prev,
+                department: value,
+                // Clear doctor if it doesn't match new department (check both specialization and department object)
+                doctorId: prev.doctorId &&
+                    (doctors.find(d => d._id === prev.doctorId)?.specialization !== value &&
+                        doctors.find(d => d._id === prev.doctorId)?.department?.name !== value) &&
+                    value !== ""
+                    ? ""
+                    : prev.doctorId
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -149,7 +181,7 @@ const BookAppointment = () => {
                                 >
                                     <option value="">Select Department</option>
                                     {departments.map(dept => (
-                                        <option key={dept} value={dept}>{dept}</option>
+                                        <option key={dept._id} value={dept.name}>{dept.name}</option>
                                     ))}
                                 </Select>
                             </div>
@@ -165,7 +197,7 @@ const BookAppointment = () => {
                                 >
                                     <option value="">Choose Doctor</option>
                                     {doctors
-                                        .filter(d => !formData.department || d.specialization === formData.department)
+                                        .filter(d => !formData.department || d.specialization === formData.department || d.department?.name === formData.department)
                                         .map(doctor => (
                                             <option key={doctor._id} value={doctor._id}>
                                                 Dr. {doctor.user?.name}
