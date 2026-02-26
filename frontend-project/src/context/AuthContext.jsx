@@ -36,6 +36,13 @@ export const AuthProvider = ({ children }) => {
                         setUser(healed);
                         localStorage.setItem('hms_user', JSON.stringify(healed));
                     }
+                } else if (user.role === 'Pharmacist' && !user.pharmacistId) {
+                    const res = await api.get(`/admin/pharmacists/by-user/${user.id}`);
+                    if (res.data.success) {
+                        const healed = { ...user, pharmacistId: res.data.data._id };
+                        setUser(healed);
+                        localStorage.setItem('hms_user', JSON.stringify(healed));
+                    }
                 }
             } catch (err) {
                 console.warn('Profile ID healing failed:', err.message);

@@ -265,3 +265,18 @@ exports.deletePharmacist = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+// @desc    Get pharmacist by User ID
+// @route   GET /api/admin/pharmacists/by-user/:userId
+// @access  Private
+exports.getPharmacistByUserId = async (req, res) => {
+    try {
+        const Pharmacist = require('../models/Pharmacist');
+        const pharmacist = await Pharmacist.findOne({ user: req.params.userId }).populate('user', 'name email');
+        if (!pharmacist) {
+            return res.status(404).json({ success: false, message: 'Pharmacist not found' });
+        }
+        res.json({ success: true, data: pharmacist });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

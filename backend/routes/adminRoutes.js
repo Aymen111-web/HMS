@@ -7,11 +7,15 @@ const {
     toggleUserStatus,
     getPharmacists,
     createPharmacist,
-    deletePharmacist
+    deletePharmacist,
+    getPharmacistByUserId
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
+
+router.get('/pharmacists/by-user/:userId', getPharmacistByUserId);
+
 router.use(authorize('Admin'));
 
 router.get('/analytics', getAnalytics);

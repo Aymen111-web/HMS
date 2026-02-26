@@ -31,6 +31,7 @@ const Login = () => {
                     case 'Admin': navigate('/admin/dashboard'); break;
                     case 'Doctor': navigate('/doctor/dashboard'); break;
                     case 'Patient': navigate('/patient/dashboard'); break;
+                    case 'Pharmacist': navigate('/pharmacist/dashboard'); break;
                     default: navigate('/');
                 }
             }

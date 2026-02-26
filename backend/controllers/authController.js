@@ -31,6 +31,7 @@ exports.register = async (req, res) => {
 
         let doctorId = null;
         let patientId = null;
+        let pharmacistId = null;
 
         if (role === 'Doctor') {
             const doctorData = {
@@ -48,6 +49,13 @@ exports.register = async (req, res) => {
                 user: user._id
             });
             patientId = patient._id;
+        } else if (role === 'Pharmacist') {
+            const pharmacist = await Pharmacist.create({
+                user: user._id,
+                licenseNumber: req.body.licenseNumber || `PH-${Math.floor(Math.random() * 900000 + 100000)}`,
+                phone: req.body.phone || ''
+            });
+            pharmacistId = pharmacist._id;
         }
 
         // Create token
@@ -66,7 +74,8 @@ exports.register = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 doctorId,
-                patientId
+                patientId,
+                pharmacistId
             }
         });
     } catch (err) {
