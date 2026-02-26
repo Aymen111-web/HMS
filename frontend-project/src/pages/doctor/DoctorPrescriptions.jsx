@@ -149,8 +149,8 @@ const DoctorPrescriptions = () => {
                                         <div className="flex flex-col items-center gap-3 text-slate-400">
                                             <FileText size={48} className="opacity-10" />
                                             <p className="font-medium">No prescriptions found</p>
-                                            <Button variant="ghost" className="text-blue-600 font-bold" onClick={() => navigate('/doctor/create-prescription')}>
-                                                Create your first one
+                                            <Button variant="primary" className="rounded-xl shadow-lg mt-2" onClick={() => navigate('/doctor/appointments')}>
+                                                Start from Appointments
                                             </Button>
                                         </div>
                                     </td>
