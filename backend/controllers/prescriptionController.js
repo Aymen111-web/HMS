@@ -258,14 +258,43 @@ exports.getPendingPrescriptions = async (req, res) => {
 // @access  Private/Pharmacist
 exports.approvePrescription = async (req, res) => {
     try {
-        const prescription = await Prescription.findByIdAndUpdate(req.params.id, {
-            status: 'APPROVED',
-            pharmacyNotes: req.body.notes || 'Medicine approved and ready for pickup.'
-        }, { new: true });
+        const prescription = await Prescription.findById(req.params.id)
+            .populate('patient')
+            .populate('doctor');
 
         if (!prescription) {
             return res.status(404).json({ success: false, message: 'Prescription not found' });
         }
+
+        if (prescription.status !== 'PENDING') {
+            return res.status(400).json({ success: false, message: 'Only pending prescriptions can be approved' });
+        }
+
+        prescription.status = 'APPROVED';
+        prescription.pharmacyNotes = req.body.notes || 'Medicine approved and ready for pickup.';
+        prescription.approvedBy = req.user._id;
+        prescription.approvedAt = Date.now();
+
+        await prescription.save();
+
+        // Trigger Notifications
+        const Notification = require('../models/Notification');
+        await Notification.create([
+            {
+                user: prescription.patient.user,
+                title: 'Prescription Approved',
+                message: 'Your prescription is ready for pickup.',
+                type: 'General',
+                link: '/patient/prescriptions'
+            },
+            {
+                user: prescription.doctor.user,
+                title: 'Prescription Approved',
+                message: `Prescription for ${prescription.patient.name || 'patient'} has been approved by pharmacy.`,
+                type: 'General',
+                link: '/doctor/prescriptions'
+            }
+        ]);
 
         res.json({ success: true, data: prescription });
     } catch (err) {
@@ -278,20 +307,141 @@ exports.approvePrescription = async (req, res) => {
 // @access  Private/Pharmacist
 exports.rejectPrescription = async (req, res) => {
     try {
-        if (!req.body.notes) {
+        const { rejectionReason } = req.body;
+        if (!rejectionReason) {
             return res.status(400).json({ success: false, message: 'Rejection reason is required' });
         }
 
-        const prescription = await Prescription.findByIdAndUpdate(req.params.id, {
-            status: 'REJECTED',
-            pharmacyNotes: req.body.notes
-        }, { new: true });
+        const prescription = await Prescription.findById(req.params.id)
+            .populate('patient')
+            .populate('doctor');
 
         if (!prescription) {
             return res.status(404).json({ success: false, message: 'Prescription not found' });
         }
 
+        if (prescription.status !== 'PENDING') {
+            return res.status(400).json({ success: false, message: 'Only pending prescriptions can be rejected' });
+        }
+
+        prescription.status = 'REJECTED';
+        prescription.rejectionReason = rejectionReason;
+        prescription.pharmacyNotes = rejectionReason;
+        prescription.rejectedBy = req.user._id;
+        prescription.rejectedAt = Date.now();
+
+        await prescription.save();
+
+        // Trigger Notifications
+        const Notification = require('../models/Notification');
+        await Notification.create([
+            {
+                user: prescription.patient.user,
+                title: 'Prescription Rejected',
+                message: 'Your prescription was rejected by the pharmacy. Please contact the hospital.',
+                type: 'General',
+                link: '/patient/prescriptions'
+            },
+            {
+                user: prescription.doctor.user,
+                title: 'Prescription Rejected',
+                message: `Prescription for ${prescription.patient.name || 'patient'} was rejected: ${rejectionReason}`,
+                type: 'General',
+                link: '/doctor/prescriptions'
+            }
+        ]);
+
         res.json({ success: true, data: prescription });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get all approved (not yet dispensed) prescriptions
+// @route   GET /api/prescriptions/approved
+// @access  Private/Pharmacist
+exports.getApprovedPrescriptions = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({
+            status: 'APPROVED',
+            dispensed: false
+        })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name email' }
+            })
+            .populate({
+                path: 'doctor',
+                populate: { path: 'user', select: 'name' }
+            })
+            .sort({ updatedAt: -1 });
+
+        res.json({
+            success: true,
+            count: prescriptions.length,
+            data: prescriptions
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Mark prescription as dispensed
+// @route   PATCH /api/prescriptions/:id/dispense
+// @access  Private/Pharmacist
+exports.dispensePrescription = async (req, res) => {
+    try {
+        const prescription = await Prescription.findById(req.params.id).populate('patient');
+
+        if (!prescription) {
+            return res.status(404).json({ success: false, message: 'Prescription not found' });
+        }
+
+        if (prescription.status !== 'APPROVED') {
+            return res.status(400).json({ success: false, message: 'Only approved prescriptions can be dispensed' });
+        }
+
+        if (prescription.dispensed) {
+            return res.status(400).json({ success: false, message: 'Prescription already dispensed' });
+        }
+
+        prescription.dispensed = true;
+        prescription.dispensedAt = Date.now();
+
+        await prescription.save();
+
+        // Notification
+        const Notification = require('../models/Notification');
+        await Notification.create({
+            user: prescription.patient.user,
+            title: 'Medicine Collected',
+            message: 'Your medicine has been marked as collected/dispensed.',
+            type: 'General'
+        });
+
+        res.json({ success: true, data: prescription });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get rejected prescriptions history
+// @route   GET /api/prescriptions/rejected
+// @access  Private/Pharmacist
+exports.getRejectedHistory = async (req, res) => {
+    try {
+        const prescriptions = await Prescription.find({ status: 'REJECTED' })
+            .populate({
+                path: 'patient',
+                populate: { path: 'user', select: 'name' }
+            })
+            .populate('rejectedBy', 'name email')
+            .sort({ rejectedAt: -1 });
+
+        res.json({
+            success: true,
+            data: prescriptions
+        });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

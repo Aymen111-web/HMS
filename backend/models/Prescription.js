@@ -14,7 +14,21 @@ const prescriptionSchema = mongoose.Schema({
     }],
     instructions: { type: String }, // General instructions
     status: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
-    pharmacyNotes: { type: String }
+    pharmacyNotes: { type: String },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    approvedAt: { type: Date },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectedAt: { type: Date },
+    rejectionReason: { type: String },
+    dispensed: { type: Boolean, default: false },
+    dispensedAt: { type: Date }
 }, { timestamps: true });
+
+// Performance Indexes
+prescriptionSchema.index({ status: 1 });
+prescriptionSchema.index({ patient: 1 });
+prescriptionSchema.index({ doctor: 1 });
+prescriptionSchema.index({ createdAt: -1 });
+prescriptionSchema.index({ dispensed: 1 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

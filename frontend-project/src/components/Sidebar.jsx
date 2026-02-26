@@ -14,7 +14,8 @@ import {
     CreditCard,
     Stethoscope,
     Activity,
-    ClipboardList
+    ClipboardList,
+    Pill
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -29,6 +30,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             case 'admin': return '/admin';
             case 'doctor': return '/doctor';
             case 'patient': return '/patient';
+            case 'pharmacist': return '/pharmacist';
             default: return '';
         }
     };
@@ -43,7 +45,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Departments', icon: Building2, path: `${basePath}/departments`, roles: ['Admin'] },
         { name: 'Pharmacists', icon: ClipboardList, path: `${basePath}/pharmacists`, roles: ['Admin'] },
         { name: 'Billing', icon: CreditCard, path: `${basePath}/billing`, roles: ['Admin'] },
-        { name: 'Prescriptions', icon: ClipboardList, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient', 'Pharmacist'] },
+        { name: 'Prescriptions', icon: Pill, path: `${basePath}/prescriptions`, roles: ['Doctor', 'Patient', 'Pharmacist'] },
         { name: 'Records', icon: FileText, path: `${basePath}/records`, roles: ['Patient'] },
         { name: 'Lab Reports', icon: Activity, path: `${basePath}/lab-reports`, roles: ['Patient'] },
         { name: 'My Payments', icon: CreditCard, path: `${basePath}/payments`, roles: ['Patient'] },

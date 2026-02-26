@@ -30,6 +30,7 @@ const labReportRoutes = require('./routes/labReportRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
+const pharmacyRoutes = require('./routes/pharmacyRoutes');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -44,6 +45,7 @@ app.use('/api/lab-reports', labReportRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/pharmacy', pharmacyRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -18,19 +18,25 @@ const PharmacyDashboard = () => {
     const [prescriptions, setPrescriptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState('PENDING'); // PENDING, APPROVED, REJECTED
     const [selectedPrescription, setSelectedPrescription] = useState(null);
     const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    const [isDispenseModalOpen, setIsDispenseModalOpen] = useState(false);
     const [notes, setNotes] = useState('');
 
     useEffect(() => {
-        fetchPendingPrescriptions();
-    }, []);
+        fetchPrescriptions();
+    }, [activeTab]);
 
-    const fetchPendingPrescriptions = async () => {
+    const fetchPrescriptions = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/prescriptions/pending');
+            let endpoint = '/pharmacy/prescriptions/pending';
+            if (activeTab === 'APPROVED') endpoint = '/pharmacy/prescriptions/approved';
+            if (activeTab === 'REJECTED') endpoint = '/pharmacy/prescriptions/rejected';
+
+            const res = await api.get(endpoint);
             if (res.data.success) {
                 setPrescriptions(res.data.data);
             }
@@ -43,10 +49,10 @@ const PharmacyDashboard = () => {
 
     const handleApprove = async () => {
         try {
-            await api.patch(`/prescriptions/${selectedPrescription._id}/approve`, { notes });
+            await api.patch(`/pharmacy/prescriptions/${selectedPrescription._id}/approve`, { notes });
             setIsApproveModalOpen(false);
             setNotes('');
-            fetchPendingPrescriptions();
+            fetchPrescriptions();
         } catch (err) {
             console.error('Error approving prescription:', err);
         }
@@ -58,12 +64,22 @@ const PharmacyDashboard = () => {
                 alert('Please provide a reason for rejection');
                 return;
             }
-            await api.patch(`/prescriptions/${selectedPrescription._id}/reject`, { notes });
+            await api.patch(`/pharmacy/prescriptions/${selectedPrescription._id}/reject`, { rejectionReason: notes });
             setIsRejectModalOpen(false);
             setNotes('');
-            fetchPendingPrescriptions();
+            fetchPrescriptions();
         } catch (err) {
             console.error('Error rejecting prescription:', err);
+        }
+    };
+
+    const handleDispense = async () => {
+        try {
+            await api.patch(`/pharmacy/prescriptions/${selectedPrescription._id}/dispense`);
+            setIsDispenseModalOpen(false);
+            fetchPrescriptions();
+        } catch (err) {
+            console.error('Error dispensing prescription:', err);
         }
     };
 
@@ -76,20 +92,37 @@ const PharmacyDashboard = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Pharmacy Dashboard</h1>
-                <p className="text-slate-500 font-medium mt-1">Review and process pending prescriptions</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Pharmacy Dashboard</h1>
+                    <p className="text-slate-500 font-medium mt-1">Global Medical Fulfillment Hub</p>
+                </div>
             </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
-                        <Clock size={24} />
-                    </div>
-                    <p className="text-slate-500 text-sm font-bold uppercase tracking-wider">Pending Tasks</p>
-                    <h2 className="text-3xl font-black text-slate-900 mt-1">{prescriptions.length}</h2>
-                </div>
+            {/* Tabs */}
+            <div className="flex p-1.5 bg-slate-100 rounded-[2rem] w-fit">
+                {[
+                    { id: 'PENDING', label: 'Pending Review', icon: Clock },
+                    { id: 'APPROVED', label: 'Ready for Pickup', icon: CheckCircle },
+                    { id: 'REJECTED', label: 'History & Rejected', icon: XCircle }
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-[1.75rem] text-sm font-bold transition-all ${activeTab === tab.id
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        <tab.icon size={18} />
+                        {tab.label}
+                        {tab.id === 'PENDING' && prescriptions.length > 0 && activeTab === 'PENDING' && (
+                            <span className="ml-1 px-2 py-0.5 bg-blue-600 text-white text-[10px] rounded-full">
+                                {prescriptions.length}
+                            </span>
+                        )}
+                    </button>
+                ))}
             </div>
 
             {/* Search */}
@@ -99,7 +132,7 @@ const PharmacyDashboard = () => {
                     <input
                         type="text"
                         placeholder="Search by patient or doctor name..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-700"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -112,15 +145,26 @@ const PharmacyDashboard = () => {
                     <div key={presc._id} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all">
                         <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                             <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
                                     {presc.patient?.user?.name?.charAt(0)}
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-900">{presc.patient?.user?.name}</h3>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Patient</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                        {new Date(presc.createdAt).toLocaleDateString()}
+                                    </p>
                                 </div>
                             </div>
-                            <Badge variant="warning">PENDING APPROVAL</Badge>
+                            <Badge
+                                variant={
+                                    presc.status === 'APPROVED' ? 'success' :
+                                        presc.status === 'REJECTED' ? 'danger' :
+                                            'warning'
+                                }
+                            >
+                                {presc.status}
+                                {presc.dispensed && ' • DISPENSED'}
+                            </Badge>
                         </div>
 
                         <div className="p-6 space-y-6">
@@ -129,7 +173,7 @@ const PharmacyDashboard = () => {
                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
                                         <Stethoscope size={12} /> Prescribed By
                                     </p>
-                                    <p className="font-bold text-slate-700 text-sm">Dr. {presc.doctor?.user?.name}</p>
+                                    <p className="font-bold text-slate-700 text-sm">Dr. {presc.doctor?.user?.name || 'Staff'}</p>
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-2xl">
                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1">
@@ -151,8 +195,6 @@ const PharmacyDashboard = () => {
                                             <div className="flex gap-4 text-[11px] font-bold text-slate-400">
                                                 <span>{med.dosage}</span>
                                                 <span className="text-slate-300">•</span>
-                                                <span>{med.frequency}</span>
-                                                <span className="text-slate-300">•</span>
                                                 <span>{med.duration}</span>
                                             </div>
                                         </div>
@@ -160,37 +202,67 @@ const PharmacyDashboard = () => {
                                 </div>
                             </div>
 
+                            {activeTab === 'REJECTED' && presc.rejectionReason && (
+                                <div className="p-4 bg-rose-50 text-rose-700 rounded-2xl border border-rose-100">
+                                    <p className="text-[10px] font-black uppercase tracking-widest mb-1">Rejection Reason</p>
+                                    <p className="text-sm font-medium">{presc.rejectionReason}</p>
+                                </div>
+                            )}
+
+                            {activeTab === 'APPROVED' && presc.pharmacyNotes && (
+                                <div className="p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100">
+                                    <p className="text-[10px] font-black uppercase tracking-widest mb-1">Pharmacy Notes</p>
+                                    <p className="text-sm font-medium">{presc.pharmacyNotes}</p>
+                                </div>
+                            )}
+
                             <div className="flex gap-3 pt-2">
-                                <Button
-                                    variant="success"
-                                    className="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2"
-                                    onClick={() => {
-                                        setSelectedPrescription(presc);
-                                        setIsApproveModalOpen(true);
-                                    }}
-                                >
-                                    <CheckCircle size={18} /> Approve
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    className="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2"
-                                    onClick={() => {
-                                        setSelectedPrescription(presc);
-                                        setIsRejectModalOpen(true);
-                                    }}
-                                >
-                                    <XCircle size={18} /> Reject
-                                </Button>
+                                {activeTab === 'PENDING' && (
+                                    <>
+                                        <Button
+                                            variant="success"
+                                            className="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2"
+                                            onClick={() => {
+                                                setSelectedPrescription(presc);
+                                                setIsApproveModalOpen(true);
+                                            }}
+                                        >
+                                            <CheckCircle size={18} /> Approve
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            className="flex-1 h-12 rounded-2xl flex items-center justify-center gap-2"
+                                            onClick={() => {
+                                                setSelectedPrescription(presc);
+                                                setIsRejectModalOpen(true);
+                                            }}
+                                        >
+                                            <XCircle size={18} /> Reject
+                                        </Button>
+                                    </>
+                                )}
+                                {activeTab === 'APPROVED' && !presc.dispensed && (
+                                    <Button
+                                        variant="primary"
+                                        className="w-full h-12 rounded-2xl flex items-center justify-center gap-2"
+                                        onClick={() => {
+                                            setSelectedPrescription(presc);
+                                            setIsDispenseModalOpen(true);
+                                        }}
+                                    >
+                                        <CheckCircle size={18} /> Mark as Dispensed
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
                 )) : (
                     <div className="col-span-full py-20 text-center bg-white rounded-[32px] border border-slate-100 border-dashed">
-                        <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <ClipboardList className="text-slate-300" size={40} />
+                        <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                            {activeTab === 'PENDING' ? <ClipboardList size={40} /> : <FileText size={40} />}
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-1">Queue Clear!</h3>
-                        <p className="text-slate-500">No pending prescriptions found at the moment.</p>
+                        <h3 className="text-xl font-bold text-slate-900 mb-1 font-black">Nothing to show</h3>
+                        <p className="text-slate-500 font-medium">Your request returned zero records.</p>
                     </div>
                 )}
             </div>
@@ -238,6 +310,20 @@ const PharmacyDashboard = () => {
                     <div className="flex gap-3 pt-2">
                         <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setIsRejectModalOpen(false)}>Cancel</Button>
                         <Button variant="danger" className="flex-1 rounded-xl" onClick={handleReject}>Confirm Rejection</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Dispense Modal */}
+            <Modal isOpen={isDispenseModalOpen} onClose={() => setIsDispenseModalOpen(false)} title="Confirm Collection">
+                <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 text-blue-700 rounded-2xl flex items-start gap-3">
+                        <AlertCircle className="mt-0.5" size={18} />
+                        <p className="text-sm font-medium">Confirm that the patient has collected their medication. This action will mark the prescription as Dispensed.</p>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                        <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setIsDispenseModalOpen(false)}>Cancel</Button>
+                        <Button variant="primary" className="flex-1 rounded-xl shadow-lg ring-4 ring-blue-50" onClick={handleDispense}>Mark as Dispensed</Button>
                     </div>
                 </div>
             </Modal>
